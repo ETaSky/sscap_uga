@@ -1,0 +1,47 @@
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_11_TAGTGACC-ACAGCAAC__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_11_TAGTGACC-ACAGCAAC__R2_001.fastq.gz -baseout 1-QF-PE150/Bei11.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei11_1P.fastq.gz 1-QF-PE150/Bei11_1U.fastq.gz 1-QF-PE150/Bei11_2P.fastq.gz 1-QF-PE150/Bei11_2U.fastq.gz
+Input Read Pairs: 657422 Both Surviving: 366185 (55.70%) Forward Only Surviving: 247385 (37.63%) Reverse Only Surviving: 6115 (0.93%) Dropped: 37737 (5.74%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_12_TAGTGACC-AGTCGACA__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_12_TAGTGACC-AGTCGACA__R2_001.fastq.gz -baseout 1-QF-PE150/Bei12.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei12_1P.fastq.gz 1-QF-PE150/Bei12_1U.fastq.gz 1-QF-PE150/Bei12_2P.fastq.gz 1-QF-PE150/Bei12_2U.fastq.gz
+Input Read Pairs: 806005 Both Surviving: 442249 (54.87%) Forward Only Surviving: 307660 (38.17%) Reverse Only Surviving: 7982 (0.99%) Dropped: 48114 (5.97%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_13_TAGTGACC-GTTAGACG__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_13_TAGTGACC-GTTAGACG__R2_001.fastq.gz -baseout 1-QF-PE150/Bei13.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei13_1P.fastq.gz 1-QF-PE150/Bei13_1U.fastq.gz 1-QF-PE150/Bei13_2P.fastq.gz 1-QF-PE150/Bei13_2U.fastq.gz
+Input Read Pairs: 879595 Both Surviving: 485706 (55.22%) Forward Only Surviving: 335101 (38.10%) Reverse Only Surviving: 8169 (0.93%) Dropped: 50619 (5.75%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_14_TAGTGACC-CCAGTGTT__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_14_TAGTGACC-CCAGTGTT__R2_001.fastq.gz -baseout 1-QF-PE150/Bei14.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei14_1P.fastq.gz 1-QF-PE150/Bei14_1U.fastq.gz 1-QF-PE150/Bei14_2P.fastq.gz 1-QF-PE150/Bei14_2U.fastq.gz
+Input Read Pairs: 922694 Both Surviving: 522789 (56.66%) Forward Only Surviving: 339702 (36.82%) Reverse Only Surviving: 9311 (1.01%) Dropped: 50892 (5.52%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_1_CAGCGATT-TCTGAGAG__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_1_CAGCGATT-TCTGAGAG__R2_001.fastq.gz -baseout 1-QF-PE150/Bei1.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei1_1P.fastq.gz 1-QF-PE150/Bei1_1U.fastq.gz 1-QF-PE150/Bei1_2P.fastq.gz 1-QF-PE150/Bei1_2U.fastq.gz
+Input Read Pairs: 948878 Both Surviving: 319371 (33.66%) Forward Only Surviving: 549805 (57.94%) Reverse Only Surviving: 5520 (0.58%) Dropped: 74182 (7.82%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_2_CAGCGATT-AAGTCCGT__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_2_CAGCGATT-AAGTCCGT__R2_001.fastq.gz -baseout 1-QF-PE150/Bei2.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei2_1P.fastq.gz 1-QF-PE150/Bei2_1U.fastq.gz 1-QF-PE150/Bei2_2P.fastq.gz 1-QF-PE150/Bei2_2U.fastq.gz
+Input Read Pairs: 730979 Both Surviving: 304648 (41.68%) Forward Only Surviving: 368591 (50.42%) Reverse Only Surviving: 5685 (0.78%) Dropped: 52055 (7.12%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_3_CAGCGATT-ACAGCAAC__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_3_CAGCGATT-ACAGCAAC__R2_001.fastq.gz -baseout 1-QF-PE150/Bei3.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei3_1P.fastq.gz 1-QF-PE150/Bei3_1U.fastq.gz 1-QF-PE150/Bei3_2P.fastq.gz 1-QF-PE150/Bei3_2U.fastq.gz
+Input Read Pairs: 1585431 Both Surviving: 624758 (39.41%) Forward Only Surviving: 828922 (52.28%) Reverse Only Surviving: 12452 (0.79%) Dropped: 119299 (7.52%)
+TrimmomaticPE: Completed successfully
+
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Bei_4_CAGCGATT-AGTCGACA__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_Bei_4_CAGCGATT-AGTCGACA__R2_001.fastq.gz -baseout 1-QF-PE150/Bei4.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Bei4_1P.fastq.gz 1-QF-PE150/Bei4_1U.fastq.gz 1-QF-PE150/Bei4_2P.fastq.gz 1-QF-PE150/Bei4_2U.fastq.gz
+Input Read Pairs: 1790077 Both Surviving: 658704 (36.80%) Forward Only Surviving: 981773 (54.85%) Reverse Only Surviving: 11483 (0.64%) Dropped: 138117 (7.72%)
+TrimmomaticPE: Completed successfully

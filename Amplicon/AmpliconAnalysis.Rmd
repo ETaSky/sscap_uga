@@ -1,0 +1,213 @@
+---
+title: "AmpliconAnalysis"
+output:
+  html_document:
+    df_print: paged
+editor_options:
+  chunk_output_type: console
+---
+```{r setup, echo=FALSE}
+library(conflicted)
+library(knitr)
+library(dada2)
+library(tidyverse)
+library(ShortRead)
+library(ggrepel)
+
+conflict_prefer("strsplit", "Biostrings")
+conflict_prefer("filter", "dplyr")
+
+options(max.print="999")
+opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, prompt=FALSE, tidy = TRUE, comment = NA, message = FALSE)
+opts_knit$set(width=75)
+
+# set path
+opts_knit$set(root.dir = paste0(rprojroot::find_rstudio_root_file(), "/Amplicon"))
+setwd(paste0(rprojroot::find_rstudio_root_file(), "/Amplicon"))
+
+sessionInfo()
+
+```
+
+# Primer trimming using cutadapt
+```{shell, eval=FALSE}
+for f in ../../02-Data/AmpliconSeq/BG*R1.fastq.gz; do sname=${f##*/}; sname=${sname%_*}; cutadapt -j 1 -g GTGCCAGCMGCCGCGGTAA -G GACTACHVGGGTATCTAATCC -e 0.1 -n 1 -O 15 -o ${sname}_trim_R1.fastq.gz --untrimmed-output=${sname}_untrim_R1.fastq.gz -p ${sname}_trim_R2.fastq.gz --untrimmed-paired-output=${sname}_untrim_R2.fastq.gz $f ${f%R1.fastq.gz}R2.fastq.gz; done 2>&1 | tee BG_cutadapt.log
+
+for f in ../../02-Data/AmpliconSeq/*JW-R1.fastq.gz; do sname=${f##*/}; sname=${sname%%-*}; cutadapt -j 1 -g CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC -e 0.1 -n 1 -O 15 -o JW${sname}_trim_R1.fastq.gz --untrimmed-output=JW${sname}_untrim_R1.fastq.gz -p JW${sname}_trim_R2.fastq.gz --untrimmed-paired-output=JW${sname}_untrim_R2.fastq.gz $f ${f%R1.fastq.gz}R2.fastq.gz; done 2>&1 | tee JW_cutadapt.log
+    
+cutadapt -j 1 -g CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC -e 0.1 -n 1 -O 15 -o Zymo-Amplicon_trim_R1.fastq.gz --untrimmed-output=Zymo-Amplicon_untrim_R1.fastq.gz -p Zymo-Amplicon_trim_R2.fastq.gz --untrimmed-paired-output=Zymo-Amplicon_untrim_R2.fastq.gz ../../../Tmp-Data/Zymo-Amplicon-R1.fastq.gz ../../../Tmp-Data/Zymo-Amplicon-R2.fastq.gz 2>&1 | tee Zymo_cutadapt.log 
+```
+
+# Pre-quality trimming
+```{r check quality scores}
+path <- "1-PrimerTrim"
+list.files(path)
+
+fnFs <- sort(list.files(path, pattern = "_trim_R1.fastq.gz", full.names = T))
+fnRs <- sort(list.files(path, pattern = "_trim_R2.fastq.gz", full.names = T))
+
+# Extract sample names
+sample.names <- sapply(strsplit(basename(fnFs), "[_-]"), `[`, 1)
+
+# Check quality profile
+for (i in seq(length(sample.names))){
+    t <- plotQualityProfile(c(fnFs[i], fnRs[i]))
+    if (grepl("BG", sample.names[i])){ # BG's PE250 data
+        print(t + scale_x_continuous(breaks=seq(0,250,25)) + theme(aspect.ratio = 1.2))
+        ggsave(paste0(sample.names[i],"_qualityPlot.pdf"))
+    } else { # JW's PE300 data
+        print(t + scale_x_continuous(breaks=seq(0,300,25)) + theme(aspect.ratio = 1.2))
+        ggsave(paste0(sample.names[i],"_qualityPlot.pdf"))
+    }
+}
+
+
+qaFs <- qa(fnFs)
+qaRs <- qa(fnRs)
+
+qaFs_base <- qaFs[["perCycle"]]$baseCall %>% group_by(lane, Cycle) %>% summarise(N = sum(Count))
+ggplot(qaFs_base, aes(x = Cycle, y = N, color = lane)) +
+    geom_line() +
+    scale_x_continuous(breaks = seq(200, 300, 10), limits = c(200, 300)) +
+    #geom_label_repel(data = qaFs_base %>% filter(Cycle==210), aes(x = 250, label = lane), size = 7/.pt) + 
+    theme_grey(base_size = 8) + theme(aspect.ratio = 0.5, legend.position = "none")
+ggsave(filename = "qaFs.pdf", width = 7, useDingbats = F)
+
+qaRs_base <- qaRs[["perCycle"]]$baseCall %>% group_by(lane, Cycle) %>% summarise(N = sum(Count))
+ggplot(qaRs_base, aes(x = Cycle, y = N, color = lane)) +
+    geom_line() +
+    scale_x_continuous(breaks = seq(200, 300, 10), limits = c(200, 300)) +
+    #geom_label_repel(data = qaFs_base %>% filter(Cycle==210), aes(x = 250, label = lane), size = 7/.pt) + 
+    theme_grey(base_size = 8) + theme(aspect.ratio = 0.5, legend.position = "none")
+ggsave(filename = "qaRs.pdf", width = 7, useDingbats = F)
+
+```
+```{r quality trimming}
+filt_path <- file.path("2-QF")
+filtFs <- file.path(filt_path, paste0(sample.names, "_F_filt.fastq.gz"))
+filtRs <- file.path(filt_path, paste0(sample.names, "_R_filt.fastq.gz"))
+
+fls <- list(fnFs, filtFs, fnRs, filtRs)
+fls_bg <- lapply(fls, function(x){x[grepl(pattern = "BG", x)]})
+fls_jw <- lapply(fls, function(x){x[grepl(pattern = "JW", x)]})
+fls_zymo <- lapply(fls, function(x){x[grepl(pattern = "Zymo", x)]})
+
+# Process BG's data first
+## maxEE is critical here, it controls the overall quality of the reads. the parameter is depends on the length of the reads and the quality scores, assuming an average Q of 15 is acceptable, that would translate to about 0.032 probability per base, so about 6.6 for 220bp and 6 for 200bp. This can also be considered as the expected number of errors along the reads. We can set it to be 6 for both ends for now
+out <- filterAndTrim(fls_bg[[1]], fls_bg[[2]], fls_bg[[3]], fls_bg[[4]],  truncLen = c(220,200), maxN = 0, maxEE = c(6, 6), truncQ = 2, rm.phix = TRUE, compress = TRUE, multithread = switch(Sys.info()[['sysname']], Windows = F, Darwin = T, Linux = T), verbose = T) 
+out
+
+# Process JW's data
+## maxEE is critical here, it controls the overall quality of the reads. the parameter is depends on the length of the reads and the quality scores, assuming an average Q of 15 is acceptable, that would translate to about 0.032 probability per base, so about 8.5 for 270bp and 8.2 for 260bp. This can also be considered as the expected errors along the reads. We can set it to be 8 for both ends for now
+out2 <- filterAndTrim(fls_jw[[1]], fls_jw[[2]], fls_jw[[3]], fls_jw[[4]],  truncLen = c(270, 260), maxN = 0, maxEE = c(8, 8), truncQ = 2, rm.phix = TRUE, compress = TRUE, multithread = switch(Sys.info()[['sysname']], Windows = F, Darwin = T, Linux = T),  verbose = T) 
+out2
+
+# Zymo
+out3 <- filterAndTrim(fls_zymo[[1]], fls_zymo[[2]], fls_zymo[[3]], fls_zymo[[4]], truncLen = c(270, 260), maxN = 0, maxEE = c(8, 8), truncQ = 2, rm.phix = TRUE, compress = T, multithread = switch(Sys.info()[['sysname']], Windows = F, Darwin = T, Linux = T), verbose = T)
+out3
+```
+
+# Denoising
+## Learn the error rate
+```{r}
+# BG run
+## learn error rate
+errF_bg <- learnErrors(fls_bg[[2]], multithread=TRUE)
+errR_bg <- learnErrors(fls_bg[[4]], multithread=TRUE)
+
+# JW run
+errF_jw <- learnErrors(fls_jw[[2]], multithread=TRUE)
+errR_jw <- learnErrors(fls_jw[[4]], multithread=TRUE)
+
+# Zymo run
+errF_zymo <- learnErrors(fls_zymo[[2]], multithread=TRUE)
+errR_zymo <- learnErrors(fls_zymo[[4]], multithread=TRUE)
+
+plotErrors(errF_bg, nominalQ = T)
+plotErrors(errR_bg, nominalQ = T)
+plotErrors(errF_jw, nominalQ = T)
+plotErrors(errR_jw, nominalQ = T)
+plotErrors(errF_zymo, nominalQ = T)
+plotErrors(errR_zymo, nominalQ = T)
+```
+## inference
+```{r}
+dadaF_bg <- dada(fls_bg[[2]], err = errF_bg, multithread = T)
+dadaR_bg <- dada(fls_bg[[4]], err = errR_bg, multithread = T)
+
+dadaF_jw <- dada(fls_jw[[2]], err = errF_jw, multithread = T)
+dadaR_jw <- dada(fls_jw[[4]], err = errR_jw, multithread = T)
+
+dadaF_zymo <- dada(fls_zymo[[2]], err = errF_zymo, multithread = T)
+dadaR_zymo <- dada(fls_zymo[[4]], err = errR_zymo, multithread = T)
+```
+
+## merge pairs
+```{r}
+mergers_bg <- mergePairs(dadaF_bg, fls_bg[[2]], dadaR_bg, fls_bg[[4]], verbose=TRUE)
+mergers_jw <- mergePairs(dadaF_jw, fls_jw[[2]], dadaR_jw, fls_jw[[4]], verbose=TRUE)
+mergers_zymo <- mergePairs(dadaF_zymo, fls_zymo[[2]], dadaR_zymo, fls_zymo[[4]], verbose=TRUE)
+```
+
+```{r constr_seq_tab}
+seqtab_bg <- makeSequenceTable(mergers_bg)
+table(nchar(getSequences(seqtab_bg)))
+
+seqtab_jw <- makeSequenceTable(mergers_jw)
+table(nchar(getSequences(seqtab_jw)))
+seqtab_zymo <- makeSequenceTable(mergers_zymo)
+table(nchar(getSequences(seqtab_zymo)))
+attr(seqtab_zymo, "dimnames")[[1]] <- "Zymo_F_filt.fastq.gz"
+# merge jw and zymo since they both targeting V3v4
+seqtab_v3v4 <- mergeSequenceTables(seqtab_jw, seqtab_zymo)
+
+seqtab.nochim_bg <- removeBimeraDenovo(seqtab_bg, method="consensus", multithread = TRUE, verbose = TRUE)
+seqtab.nochim_v3v4 <- removeBimeraDenovo(seqtab_v3v4, method="consensus", multithread=TRUE, verbose=TRUE)
+```
+
+# Track reads
+```{r}
+#BG
+getN <- function(x) sum(getUniques(x))
+track_bg <- cbind(out, sapply(dadaF_bg, getN), sapply(dadaR_bg, getN), sapply(mergers_bg, getN), rowSums(seqtab_bg), rowSums(seqtab.nochim_bg))
+# If processing a single sample, remove the sapply calls: e.g. replace sapply(dadaFs, getN) with getN(dadaFs)
+colnames(track_bg) <- c("input", "filtered", "denoisedF", "denoisedR", "merged","tabled", "nonchim")
+rownames(track_bg) <- (rownames(track_bg) %>% str_split(pattern = "_", simplify = T))[, 1]
+
+track_jw <-  cbind(out2, sapply(dadaF_jw, getN), sapply(dadaR_jw, getN), sapply(mergers_jw, getN), rowSums(seqtab_jw))
+colnames(track_jw) <- c("input", "filtered", "denoisedF", "denoisedR", "merged","tabled")
+track_zymo <-  cbind(out3, getN(dadaF_zymo), getN(dadaR_zymo), getN(mergers_zymo), rowSums(seqtab_zymo))
+colnames(track_zymo) <- c("input", "filtered", "denoisedF", "denoisedR", "merged","tabled")
+
+track_v3v4 <- cbind(rbind(track_jw, track_zymo), rowSums(seqtab.nochim_v3v4))
+colnames(track_v3v4) <- c("input", "filtered", "denoisedF", "denoisedR", "merged","tabled", "nonchim")
+rownames(track_v3v4) <- (rownames(track_v3v4) %>% str_split(pattern = "_", simplify = T))[, 1]
+
+rbind(track_bg, track_v3v4) %>% View
+```
+
+# Assign taxonomy using greengene_13_8
+```{r}
+taxa_bg <- assignTaxonomy(seqtab.nochim_bg, "gg_13_8_train_set_97.fa.gz", multithread = T)
+taxa_v3v4 <- assignTaxonomy(seqtab.nochim_v3v4, "gg_13_8_train_set_97.fa.gz", multithread = T)
+```
+
+# Check mock community
+```{r}
+mock <- seqtab.nochim_v3v4[rownames(seqtab.nochim_v3v4) %>% grepl("HM|Zymo", .),]
+mock_filt <- mock[,colSums(mock)>0] %>% t()
+mock_final <- merge(mock_filt, taxa_v3v4, by = 0, all.x = T, all.y = F)
+taxa_mock <- taxa_v3v4[rownames(taxa_v3v4) %in% mock_final$Row.names, ]
+taxa_mock_species <- addSpecies(taxa_mock, "../Ref/silva_species_assignment_v138.fa.gz")
+save(taxa_mock_species, file = "taxa_mock_species.Rdata")
+write.table(mock_final, file = "Mock_table_dada2.txt", sep = "\t")
+```
+
+# Produce the entire feature table
+```{r}
+Amplicon_bg <- merge(seqtab.nochim_bg %>% t(), taxa_bg, by = 0)
+Amplicon_v3v4 <- merge(seqtab.nochim_v3v4 %>% t(), taxa_v3v4, by = 0)
+save(Amplicon_bg, file = "Amplicon_BG_feature_table.Rdata")
+save(Amplicon_v3v4, file = "Amplicon_V3V4_feature_table.Rdata")
+```
+

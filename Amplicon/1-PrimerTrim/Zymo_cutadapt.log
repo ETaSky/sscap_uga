@@ -1,0 +1,71 @@
+This is cutadapt 1.16 with Python 3.6.3
+Command line parameters: -j 1 -g CCTACGGGNGGCWGCAG -G GACTACHVGGGTATCTAATCC -e 0.1 -n 1 -O 15 -o Zymo-Amplicon_trim_R1.fastq.gz --untrimmed-output=Zymo-Amplicon_untrim_R1.fastq.gz -p Zymo-Amplicon_trim_R2.fastq.gz --untrimmed-paired-output=Zymo-Amplicon_untrim_R2.fastq.gz ../../../Tmp-Data/Zymo-Amplicon-R1.fastq.gz ../../../Tmp-Data/Zymo-Amplicon-R2.fastq.gz
+Running on 1 core
+Trimming 2 adapters with at most 10.0% errors in paired-end mode ...
+Finished in 2.33 s (47 us/read; 1.28 M reads/minute).
+
+=== Summary ===
+
+Total read pairs processed:             49,828
+  Read 1 with adapter:                  49,612 (99.6%)
+  Read 2 with adapter:                  48,510 (97.4%)
+Pairs written (passing filters):        49,828 (100.0%)
+
+Total basepairs processed:    29,914,502 bp
+  Read 1:    14,959,339 bp
+  Read 2:    14,955,163 bp
+Total written (filtered):     27,440,028 bp (91.7%)
+  Read 1:    13,793,370 bp
+  Read 2:    13,646,658 bp
+
+=== First read: Adapter 1 ===
+
+Sequence: CCTACGGGNGGCWGCAG; Type: regular 5'; Length: 17; Trimmed: 49612 times.
+
+No. of allowed errors:
+0-9 bp: 0; 10-17 bp: 1
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+15	1	0.0	1	1
+16	3	0.0	1	3
+17	1	0.0	1	1
+18	1	0.0	1	1
+19	11	0.0	1	7 4
+20	10	0.0	1	6 4
+21	30	0.0	1	25 5
+22	300	0.0	1	170 130
+23	23963	0.0	1	23503 460
+24	25228	0.0	1	24769 459
+25	60	0.0	1	28 32
+26	1	0.0	1	1
+27	1	0.0	1	1
+28	1	0.0	1	1
+30	1	0.0	1	1
+
+=== Second read: Adapter 2 ===
+
+Sequence: GACTACHVGGGTATCTAATCC; Type: regular 5'; Length: 21; Trimmed: 48510 times.
+
+No. of allowed errors:
+0-9 bp: 0; 10-19 bp: 1; 20-21 bp: 2
+
+Overview of removed sequences
+length	count	expect	max.err	error counts
+15	2	0.0	1	0 2
+16	3	0.0	1	0 3
+17	1	0.0	1	0 1
+19	3	0.0	1	2 1
+20	1	0.0	2	1
+21	8	0.0	2	5 2 1
+22	3	0.0	2	0 1 2
+23	14	0.0	2	8 4 2
+24	44	0.0	2	12 22 10
+25	89	0.0	2	18 14 57
+26	946	0.0	2	185 637 124
+27	47240	0.0	2	44053 2525 662
+28	143	0.0	2	46 87 10
+29	10	0.0	2	4 1 5
+30	2	0.0	2	0 1 1
+66	1	0.0	2	0 1
+

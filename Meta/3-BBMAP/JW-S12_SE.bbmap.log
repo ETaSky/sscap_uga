@@ -1,0 +1,104 @@
+Max memory cannot be determined.  Attempting to use 3200 MB.
+If this fails, please add the -Xmx flag (e.g. -Xmx24g) to your command, 
+or run this program qsubbed or from a qlogin session on Genepool, or set ulimit to an appropriate value.
+java -Djava.library.path=/Users/Jincheng/local/bbmap/jni/ -ea -Xmx3200m -cp /Users/Jincheng/local/bbmap/current/ align2.BBWrap build=1 overwrite=true fastareadlen=500 in=1-QF2/JW-S12_1U.fastq.gz,1-QF2/JW-S12_2U.fastq.gz maxindel=20 minid=0.76 outm=3-BBMAP/JW-S12_mapped_1U.sam,3-BBMAP/JW-S12_mapped_2U.sam printunmappedcount=t
+Executing align2.BBWrap [build=1, overwrite=true, fastareadlen=500, in=1-QF2/JW-S12_1U.fastq.gz,1-QF2/JW-S12_2U.fastq.gz, maxindel=20, minid=0.76, outm=3-BBMAP/JW-S12_mapped_1U.sam,3-BBMAP/JW-S12_mapped_2U.sam, printunmappedcount=t]
+
+Executing align2.BBMap [build=1, overwrite=true, fastareadlen=500, maxindel=20, minid=0.76, printunmappedcount=t, in=1-QF2/JW-S12_1U.fastq.gz, outm=3-BBMAP/JW-S12_mapped_1U.sam]
+Version 37.87 [build=1, overwrite=true, fastareadlen=500, maxindel=20, minid=0.76, printunmappedcount=t, in=1-QF2/JW-S12_1U.fastq.gz, outm=3-BBMAP/JW-S12_mapped_1U.sam]
+
+Retaining first best site only for ambiguous mappings.
+Set MINIMUM_ALIGNMENT_SCORE_RATIO to 0.559
+Set genome to 1
+
+Loaded Reference:	1.141 seconds.
+Loading index for chunk 1-1, build 1
+Generated Index:	1.027 seconds.
+Analyzed Index:   	1.953 seconds.
+Started output stream:	0.072 seconds.
+Cleared Memory:    	0.122 seconds.
+Processing reads in single-ended mode.
+Started read stream.
+Started 4 mapping threads.
+Detecting finished threads: 0, 1, 2, 3
+
+   ------------------   Results   ------------------   
+
+Genome:                	1
+Key Length:            	13
+Max Indel:             	20
+Minimum Score Ratio:  	0.55888
+Mapping Mode:         	normal
+Reads Used:           	466527	(61878701 bases)
+
+Mapping:          	15.747 seconds.
+Reads/sec:       	29626.44
+kBases/sec:      	3929.56
+
+unmapped:        	 99.8632% 	   465889 	 99.8639% 	    61794454
+
+
+Read 1 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	  0.1368% 	      638 	  0.1361% 	       84247
+unambiguous:     	  0.0519% 	      242 	  0.0523% 	       32391
+ambiguous:       	  0.0849% 	      396 	  0.0838% 	       51856
+low-Q discards:  	  0.0000% 	        0 	  0.0000% 	           0
+
+perfect best site:	  0.0596% 	      278 	  0.0578% 	       35745
+semiperfect site:	  0.0643% 	      300 	  0.0624% 	       38598
+
+Match Rate:      	      NA 	       NA 	 96.3502% 	       81308
+Error Rate:      	 47.5661% 	      342 	  1.9896% 	        1679
+Sub Rate:        	 47.4270% 	      341 	  1.5405% 	        1300
+Del Rate:        	  2.0862% 	       15 	  0.1671% 	         141
+Ins Rate:        	  3.7552% 	       27 	  0.2820% 	         238
+N Rate:          	  6.5369% 	       47 	  1.6602% 	        1401
+
+Total time:     	20.141 seconds.
+Executing align2.BBMap [build=1, overwrite=true, fastareadlen=500, maxindel=20, minid=0.76, printunmappedcount=t, indexloaded=t, in=1-QF2/JW-S12_2U.fastq.gz, outm=3-BBMAP/JW-S12_mapped_2U.sam]
+Version 37.87 [build=1, overwrite=true, fastareadlen=500, maxindel=20, minid=0.76, printunmappedcount=t, indexloaded=t, in=1-QF2/JW-S12_2U.fastq.gz, outm=3-BBMAP/JW-S12_mapped_2U.sam]
+
+Retaining first best site only for ambiguous mappings.
+Set MINIMUM_ALIGNMENT_SCORE_RATIO to 0.559
+Started output stream:	0.032 seconds.
+Cleared Memory:    	0.133 seconds.
+Processing reads in single-ended mode.
+Started read stream.
+Started 4 mapping threads.
+Detecting finished threads: 0, 1, 2, 3
+
+   ------------------   Results   ------------------   
+
+Genome:                	1
+Key Length:            	13
+Max Indel:             	20
+Minimum Score Ratio:  	0.55888
+Mapping Mode:         	normal
+Reads Used:           	109505	(13204515 bases)
+
+Mapping:          	2.878 seconds.
+Reads/sec:       	38044.31
+kBases/sec:      	4587.52
+
+unmapped:        	 99.8648% 	   109357 	 99.8641% 	    13186571
+
+
+Read 1 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	  0.1352% 	      148 	  0.1359% 	       17944
+unambiguous:     	  0.0384% 	       42 	  0.0415% 	        5480
+ambiguous:       	  0.0968% 	      106 	  0.0944% 	       12464
+low-Q discards:  	  0.0000% 	        0 	  0.0000% 	           0
+
+perfect best site:	  0.0411% 	       45 	  0.0398% 	        5261
+semiperfect site:	  0.0447% 	       49 	  0.0441% 	        5822
+
+Match Rate:      	      NA 	       NA 	 95.6398% 	       17175
+Error Rate:      	 54.9451% 	      100 	  2.6116% 	         469
+Sub Rate:        	 54.3956% 	       99 	  2.4056% 	         432
+Del Rate:        	  3.8462% 	        7 	  0.0780% 	          14
+Ins Rate:        	  3.2967% 	        6 	  0.1281% 	          23
+N Rate:          	  7.1429% 	       13 	  1.7485% 	         314
+
+Total time:     	3.048 seconds.

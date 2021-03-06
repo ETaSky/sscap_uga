@@ -1,0 +1,35 @@
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_BEI_Mock_CGGTTGTT-GGAAGGAT_R1.fastq.gz ../../02-Data/SCap/PE150/16Scap_BEI_Mock_CGGTTGTT-GGAAGGAT_R2.fastq.gz -baseout 1-QF-PE150/BEI.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/BEI_1P.fastq.gz 1-QF-PE150/BEI_1U.fastq.gz 1-QF-PE150/BEI_2P.fastq.gz 1-QF-PE150/BEI_2U.fastq.gz
+Input Read Pairs: 5345638 Both Surviving: 3130055 (58.55%) Forward Only Surviving: 1887996 (35.32%) Reverse Only Surviving: 55290 (1.03%) Dropped: 272297 (5.09%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_S09_GTGCCATA-CATACCAC__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_S09_GTGCCATA-CATACCAC__R2_001.fastq.gz -baseout 1-QF-PE150/S09.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/S09_1P.fastq.gz 1-QF-PE150/S09_1U.fastq.gz 1-QF-PE150/S09_2P.fastq.gz 1-QF-PE150/S09_2U.fastq.gz
+Input Read Pairs: 1444441 Both Surviving: 768922 (53.23%) Forward Only Surviving: 558155 (38.64%) Reverse Only Surviving: 20492 (1.42%) Dropped: 96872 (6.71%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_S12_TAACGAGG-CATACCAC__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_S12_TAACGAGG-CATACCAC__R2_001.fastq.gz -baseout 1-QF-PE150/S12.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/S12_1P.fastq.gz 1-QF-PE150/S12_1U.fastq.gz 1-QF-PE150/S12_2P.fastq.gz 1-QF-PE150/S12_2U.fastq.gz
+Input Read Pairs: 624823 Both Surviving: 291710 (46.69%) Forward Only Surviving: 283156 (45.32%) Reverse Only Surviving: 7006 (1.12%) Dropped: 42951 (6.87%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_S14_ATGGTTGC-CATACCAC__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_S14_ATGGTTGC-CATACCAC__R2_001.fastq.gz -baseout 1-QF-PE150/S14.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/S14_1P.fastq.gz 1-QF-PE150/S14_1U.fastq.gz 1-QF-PE150/S14_2P.fastq.gz 1-QF-PE150/S14_2U.fastq.gz
+Input Read Pairs: 1221633 Both Surviving: 618024 (50.59%) Forward Only Surviving: 511347 (41.86%) Reverse Only Surviving: 12859 (1.05%) Dropped: 79403 (6.50%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_S18_GTGCCATA-CTACAGTG__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_S18_GTGCCATA-CTACAGTG__R2_001.fastq.gz -baseout 1-QF-PE150/S18.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/S18_1P.fastq.gz 1-QF-PE150/S18_1U.fastq.gz 1-QF-PE150/S18_2P.fastq.gz 1-QF-PE150/S18_2U.fastq.gz
+Input Read Pairs: 1591023 Both Surviving: 875017 (55.00%) Forward Only Surviving: 584165 (36.72%) Reverse Only Surviving: 24069 (1.51%) Dropped: 107772 (6.77%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_S22_ATGGTTGC-CTACAGTG__R1_001.fastq.gz ../../02-Data/SCap/PE150/16Scap_S22_ATGGTTGC-CTACAGTG__R2_001.fastq.gz -baseout 1-QF-PE150/S22.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/S22_1P.fastq.gz 1-QF-PE150/S22_1U.fastq.gz 1-QF-PE150/S22_2P.fastq.gz 1-QF-PE150/S22_2U.fastq.gz
+Input Read Pairs: 1568621 Both Surviving: 881471 (56.19%) Forward Only Surviving: 581954 (37.10%) Reverse Only Surviving: 16937 (1.08%) Dropped: 88259 (5.63%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -threads 4 -phred33 ../../02-Data/SCap/PE150/16Scap_Zymo_Mock_TCCGTATG-CGTGTGTA_R1.fastq.gz ../../02-Data/SCap/PE150/16Scap_Zymo_Mock_TCCGTATG-CGTGTGTA_R2.fastq.gz -baseout 1-QF-PE150/Zymo.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF-PE150/Zymo_1P.fastq.gz 1-QF-PE150/Zymo_1U.fastq.gz 1-QF-PE150/Zymo_2P.fastq.gz 1-QF-PE150/Zymo_2U.fastq.gz
+Input Read Pairs: 3359376 Both Surviving: 1952240 (58.11%) Forward Only Surviving: 1200973 (35.75%) Reverse Only Surviving: 34577 (1.03%) Dropped: 171586 (5.11%)
+TrimmomaticPE: Completed successfully

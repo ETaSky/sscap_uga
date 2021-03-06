@@ -1,0 +1,24 @@
+Name	BEI-mock	JW-HM277D	Zymo-mock	Kingdom	Phylum	Class	Order	Family	Genus	Species	OTU_ID	Lib_Type	Method
+Acinetobacter baumannii 	0.05	0.002190581		k__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Pseudomonadales	f__Moraxellaceae	g__Acinetobacter	s__baumannii	NA	Theory	Theory
+Actinomyces odontolyticus 	0.05	0.000219058		k__Bacteria	p__Actinobacteria	c__Actinobacteria	o__Actinomycetales	f__Actinomycetaceae	g__Actinomyces	s__odontolyticus	NA	Theory	Theory
+Bacillus cereus 	0.05	0.021905805		k__Bacteria	p__Firmicutes	c__Bacilli	o__Bacillales	f__Bacillaceae	g__Bacillus	s__cereus	NA	Theory	Theory
+Bacteroides vulgatus 	0.05	0.000219058		k__Bacteria	p__Bacteroidetes	c__Bacteroidia	o__Bacteroidales	f__Bacteroidaceae	g__Bacteroides	s__vulgatus	NA	Theory	Theory
+Clostridium beijerinckii 	0.05	0.021905805		k__Bacteria	p__Firmicutes	c__Clostridia	o__Clostridiales	f__Clostridiaceae	g__Clostridium	s__beijerinckii	NA	Theory	Theory
+Deinococcus radiodurans 	0.05	0.000219058		k__Bacteria	p__[Thermi]	c__Deinococci	o__Deinococcales	f__Deinococcaceae	g__Deinococcus	s__radiodurans	NA	Theory	Theory
+Enterococcus faecalis 	0.05	0.000219058	0.099	k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Enterococcaceae	g__Enterococcus	s__faecalis	NA	Theory	Theory
+Escherichia coli 	0.05	0.21905805	0.101	k__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Enterobacteriales	f__Enterobacteriaceae	g__Escherichia	s__coli	NA	Theory	Theory
+Helicobacter pylori 	0.05	0.002190581		k__Bacteria	p__Proteobacteria	c__Epsilonproteobacteria	o__Campylobacterales	f__Helicobacteraceae	g__Helicobacter	s__pylori	NA	Theory	Theory
+Lactobacillus gasseri 	0.05	0.002190581		k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Lactobacillaceae	g__Lactobacillus	s__gasseri	NA	Theory	Theory
+Listeria monocytogenes 	0.05	0.002190581	0.141	k__Bacteria	p__Firmicutes	c__Bacilli	o__Bacillales	f__Listeriaceae	g__Listeria	s__monocytogenes	NA	Theory	Theory
+Neisseria meningitidis 	0.05	0.002190581		k__Bacteria	p__Proteobacteria	c__Betaproteobacteria	o__Neisseriales	f__Neisseriaceae	g__Neisseria	s__meningitidis	NA	Theory	Theory
+Propionibacterium acnes 	0.05	0.002190581		k__Bacteria	p__Actinobacteria	c__Actinobacteria	o__Actinomycetales	f__Propionibacteriaceae	g__Propionibacterium	s__acnes	NA	Theory	Theory
+Pseudomonas aeruginosa 	0.05	0.021905805	0.042	k__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Pseudomonadales	f__Pseudomonadaceae	g__Pseudomonas	s__aeruginosa	NA	Theory	Theory
+Rhodobacter sphaeroides 	0.05	0.21905805		k__Bacteria	p__Proteobacteria	c__Alphaproteobacteria	o__Rhodobacterales	f__Rhodobacteraceae	g__Rhodobacter	s__sphaeroides	NA	Theory	Theory
+Staphylococcus aureus	0.05	0.021905805	0.155	k__Bacteria	p__Firmicutes	c__Bacilli	o__Bacillales	f__Staphylococcaceae	g__Staphylococcus	s__aureus	NA	Theory	Theory
+Staphylococcus epidermidis	0.05	0.21905805		k__Bacteria	p__Firmicutes	c__Bacilli	o__Bacillales	f__Staphylococcaceae	g__Staphylococcus	s__epidemidis	NA	Theory	Theory
+Streptococcus agalactiae 	0.05	0.021905805		k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Streptococcaceae	g__Streptococcus	s__agalactiae	NA	Theory	Theory
+Streptococcus mutans 	0.05	0.21905805		k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Streptococcaceae	g__Streptococcus	s__mutans	NA	Theory	Theory
+Streptococcus pneumoniae 	0.05	0.000219058		k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Streptococcaceae	g__Streptococcus	s__pneumoniae	NA	Theory	Theory
+Salmonella enterica			0.104	k__Bacteria	p__Proteobacteria	c__Gammaproteobacteria	o__Enterobacteriales	f__Enterobacteriaceae	g__Salmonella	s__enterica	NA	Theory	Theory
+Lactobacillus fermentum			0.184	k__Bacteria	p__Firmicutes	c__Bacilli	o__Lactobacillales	f__Lactobacillaceae	g__Lactobacillus	s__fermentum	NA	Theory	Theory
+Bacillus subtilis			0.174	k__Bacteria	p__Firmicutes	c__Bacilli	o__Bacillales	f__Bacillaceae	g__Bacillus	s__subtilis	NA	Theory	Theory

@@ -1,0 +1,96 @@
+Max memory cannot be determined.  Attempting to use 3200 MB.
+If this fails, please add the -Xmx flag (e.g. -Xmx24g) to your command, 
+or run this program qsubbed or from a qlogin session on Genepool, or set ulimit to an appropriate value.
+java -Djava.library.path=/Users/wangj50/local/bbmap/jni/ -ea -Xmx3200m -cp /Users/wangj50/local/bbmap/current/ align2.BBMap build=1 overwrite=true fastareadlen=500 in=1-QF-PE150/JW-S18_1P.fastq.gz in2=1-QF-PE150/JW-S18_2P.fastq.gz maxindel=20 minid=0.76 rcs=t killbadpairs=t pairlen=400 rescuedist=600 apd=100 outu=2-Map-PE150/JW-S18_unmapped.sam outm=2-Map-PE150/JW-S18_mapped.sam printunmappedcount=t covstats=2-Map-PE150/JW-S18.cov.txt
+Executing align2.BBMap [build=1, overwrite=true, fastareadlen=500, in=1-QF-PE150/JW-S18_1P.fastq.gz, in2=1-QF-PE150/JW-S18_2P.fastq.gz, maxindel=20, minid=0.76, rcs=t, killbadpairs=t, pairlen=400, rescuedist=600, apd=100, outu=2-Map-PE150/JW-S18_unmapped.sam, outm=2-Map-PE150/JW-S18_mapped.sam, printunmappedcount=t, covstats=2-Map-PE150/JW-S18.cov.txt]
+Version 37.78 [build=1, overwrite=true, fastareadlen=500, in=1-QF-PE150/JW-S18_1P.fastq.gz, in2=1-QF-PE150/JW-S18_2P.fastq.gz, maxindel=20, minid=0.76, rcs=t, killbadpairs=t, pairlen=400, rescuedist=600, apd=100, outu=2-Map-PE150/JW-S18_unmapped.sam, outm=2-Map-PE150/JW-S18_mapped.sam, printunmappedcount=t, covstats=2-Map-PE150/JW-S18.cov.txt]
+
+Retaining first best site only for ambiguous mappings.
+Set MINIMUM_ALIGNMENT_SCORE_RATIO to 0.559
+Set genome to 1
+
+Loaded Reference:	1.113 seconds.
+Loading index for chunk 1-1, build 1
+Generated Index:	0.829 seconds.
+Analyzed Index:   	2.125 seconds.
+Started output stream:	0.992 seconds.
+Started output stream:	0.009 seconds.
+Cleared Memory:    	0.224 seconds.
+Processing reads in paired-ended mode.
+Started read stream.
+Started 4 mapping threads.
+Detecting finished threads: 0, 1, 2, 3
+
+   ------------------   Results   ------------------   
+
+Genome:                	1
+Key Length:            	13
+Max Indel:             	20
+Minimum Score Ratio:  	0.55888
+Mapping Mode:         	normal
+Reads Used:           	1750034	(226813490 bases)
+
+Mapping:          	3010.806 seconds.
+Reads/sec:       	581.25
+kBases/sec:      	75.33
+
+
+Pairing data:   	pct pairs	num pairs 	pct bases	   num bases
+
+mated pairs:     	 49.8465% 	   436165 	 55.1639% 	   125119148
+bad pairs:       	  0.0081% 	       71 	  0.0091% 	       20568
+insert size avg: 	  383.90
+unmapped:        	 24.3340% 	   425854 	 23.9641% 	    54353840
+
+
+Read 1 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	 63.3414% 	   554248 	 63.7134% 	    79424210
+unambiguous:     	 31.6022% 	   276525 	 31.8628% 	    39719663
+ambiguous:       	 31.7392% 	   277723 	 31.8507% 	    39704547
+low-Q discards:  	  0.0000% 	        0 	  0.0000% 	           0
+
+perfect best site:	 30.4736% 	   266649 	 30.6017% 	    38147622
+semiperfect site:	 32.9796% 	   288577 	 33.1122% 	    41277199
+rescued:         	  1.5474% 	    13540
+
+Match Rate:      	      NA 	       NA 	 97.3809% 	    77356348
+Error Rate:      	 46.9086% 	   279037 	  1.2980% 	     1031083
+Sub Rate:        	 46.7290% 	   277969 	  1.2466% 	      990282
+Del Rate:        	  1.3178% 	     7839 	  0.0160% 	       12704
+Ins Rate:        	  0.9085% 	     5404 	  0.0354% 	       28097
+N Rate:          	  5.9280% 	    35263 	  1.3212% 	     1049483
+
+
+Read 2 data:      	pct reads	num reads 	pct bases	   num bases
+
+mapped:          	 62.1791% 	   544078 	 62.6500% 	    64000100
+unambiguous:     	 29.8250% 	   260974 	 30.2420% 	    30893759
+ambiguous:       	 32.3541% 	   283104 	 32.4079% 	    33106341
+low-Q discards:  	  0.0001% 	        1 	  0.0001% 	          75
+
+perfect best site:	 30.7451% 	   269025 	 30.6518% 	    31312307
+semiperfect site:	 33.6076% 	   294072 	 33.4651% 	    34186250
+rescued:         	  2.7429% 	    24001
+
+Match Rate:      	      NA 	       NA 	 97.5714% 	    62457708
+Error Rate:      	 43.9114% 	   264422 	  1.3463% 	      861768
+Sub Rate:        	 43.7367% 	   263370 	  1.2893% 	      825339
+Del Rate:        	  1.1455% 	     6898 	  0.0190% 	       12187
+Ins Rate:        	  0.7574% 	     4561 	  0.0379% 	       24242
+N Rate:          	  5.4146% 	    32605 	  1.0823% 	      692811
+
+Reads:                               	1750034
+Mapped reads:                        	1098326
+Mapped bases:                        	143424310
+Ref scaffolds:                       	99322
+Ref bases:                           	142290491
+
+Percent mapped:                      	62.760
+Percent proper pairs:                	49.846
+Average coverage:                    	1.008
+Standard deviation:                    	68.900
+Percent scaffolds with any coverage: 	7.39
+Percent of reference bases covered:  	2.06
+
+Total time:     	3017.628 seconds.

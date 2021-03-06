@@ -1,0 +1,75 @@
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-11_R1.fastq.gz 0-Data/Bei-11_R2.fastq.gz -baseout 1-QF/Bei-11.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-11_1P.fastq.gz 1-QF/Bei-11_1U.fastq.gz 1-QF/Bei-11_2P.fastq.gz 1-QF/Bei-11_2U.fastq.gz
+Input Read Pairs: 2243052 Both Surviving: 1331725 (59.37%) Forward Only Surviving: 595541 (26.55%) Reverse Only Surviving: 77879 (3.47%) Dropped: 237907 (10.61%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-12_R1.fastq.gz 0-Data/Bei-12_R2.fastq.gz -baseout 1-QF/Bei-12.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-12_1P.fastq.gz 1-QF/Bei-12_1U.fastq.gz 1-QF/Bei-12_2P.fastq.gz 1-QF/Bei-12_2U.fastq.gz
+Input Read Pairs: 2733072 Both Surviving: 1606121 (58.77%) Forward Only Surviving: 734613 (26.88%) Reverse Only Surviving: 98029 (3.59%) Dropped: 294309 (10.77%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-13_R1.fastq.gz 0-Data/Bei-13_R2.fastq.gz -baseout 1-QF/Bei-13.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-13_1P.fastq.gz 1-QF/Bei-13_1U.fastq.gz 1-QF/Bei-13_2P.fastq.gz 1-QF/Bei-13_2U.fastq.gz
+Input Read Pairs: 2525045 Both Surviving: 1510476 (59.82%) Forward Only Surviving: 659013 (26.10%) Reverse Only Surviving: 89651 (3.55%) Dropped: 265905 (10.53%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-14_R1.fastq.gz 0-Data/Bei-14_R2.fastq.gz -baseout 1-QF/Bei-14.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-14_1P.fastq.gz 1-QF/Bei-14_1U.fastq.gz 1-QF/Bei-14_2P.fastq.gz 1-QF/Bei-14_2U.fastq.gz
+Input Read Pairs: 2966335 Both Surviving: 1754643 (59.15%) Forward Only Surviving: 800211 (26.98%) Reverse Only Surviving: 103244 (3.48%) Dropped: 308237 (10.39%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-1_R1.fastq.gz 0-Data/Bei-1_R2.fastq.gz -baseout 1-QF/Bei-1.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-1_1P.fastq.gz 1-QF/Bei-1_1U.fastq.gz 1-QF/Bei-1_2P.fastq.gz 1-QF/Bei-1_2U.fastq.gz
+Input Read Pairs: 3179734 Both Surviving: 1166136 (36.67%) Forward Only Surviving: 1370159 (43.09%) Reverse Only Surviving: 77208 (2.43%) Dropped: 566231 (17.81%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-2_R1.fastq.gz 0-Data/Bei-2_R2.fastq.gz -baseout 1-QF/Bei-2.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-2_1P.fastq.gz 1-QF/Bei-2_1U.fastq.gz 1-QF/Bei-2_2P.fastq.gz 1-QF/Bei-2_2U.fastq.gz
+Input Read Pairs: 2782946 Both Surviving: 1263282 (45.39%) Forward Only Surviving: 1027576 (36.92%) Reverse Only Surviving: 81203 (2.92%) Dropped: 410885 (14.76%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-3_R1.fastq.gz 0-Data/Bei-3_R2.fastq.gz -baseout 1-QF/Bei-3.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-3_1P.fastq.gz 1-QF/Bei-3_1U.fastq.gz 1-QF/Bei-3_2P.fastq.gz 1-QF/Bei-3_2U.fastq.gz
+Input Read Pairs: 5663727 Both Surviving: 2479499 (43.78%) Forward Only Surviving: 2164163 (38.21%) Reverse Only Surviving: 156338 (2.76%) Dropped: 863727 (15.25%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Bei-4_R1.fastq.gz 0-Data/Bei-4_R2.fastq.gz -baseout 1-QF/Bei-4.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Bei-4_1P.fastq.gz 1-QF/Bei-4_1U.fastq.gz 1-QF/Bei-4_2P.fastq.gz 1-QF/Bei-4_2U.fastq.gz
+Input Read Pairs: 6125641 Both Surviving: 2509444 (40.97%) Forward Only Surviving: 2448224 (39.97%) Reverse Only Surviving: 168346 (2.75%) Dropped: 999627 (16.32%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/BEI-mock_R1.fastq.gz 0-Data/BEI-mock_R2.fastq.gz -baseout 1-QF/BEI-mock.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/BEI-mock_1P.fastq.gz 1-QF/BEI-mock_1U.fastq.gz 1-QF/BEI-mock_2P.fastq.gz 1-QF/BEI-mock_2U.fastq.gz
+Input Read Pairs: 6263379 Both Surviving: 3353699 (53.54%) Forward Only Surviving: 2041856 (32.60%) Reverse Only Surviving: 140382 (2.24%) Dropped: 727442 (11.61%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/JT-22_R1.fastq.gz 0-Data/JT-22_R2.fastq.gz -baseout 1-QF/JT-22.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/JT-22_1P.fastq.gz 1-QF/JT-22_1U.fastq.gz 1-QF/JT-22_2P.fastq.gz 1-QF/JT-22_2U.fastq.gz
+Input Read Pairs: 11543791 Both Surviving: 7850831 (68.01%) Forward Only Surviving: 1309103 (11.34%) Reverse Only Surviving: 289542 (2.51%) Dropped: 2094315 (18.14%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/JT-31_R1.fastq.gz 0-Data/JT-31_R2.fastq.gz -baseout 1-QF/JT-31.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/JT-31_1P.fastq.gz 1-QF/JT-31_1U.fastq.gz 1-QF/JT-31_2P.fastq.gz 1-QF/JT-31_2U.fastq.gz
+Input Read Pairs: 13691633 Both Surviving: 9875396 (72.13%) Forward Only Surviving: 1670604 (12.20%) Reverse Only Surviving: 377906 (2.76%) Dropped: 1767727 (12.91%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/JT-34_R1.fastq.gz 0-Data/JT-34_R2.fastq.gz -baseout 1-QF/JT-34.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/JT-34_1P.fastq.gz 1-QF/JT-34_1U.fastq.gz 1-QF/JT-34_2P.fastq.gz 1-QF/JT-34_2U.fastq.gz
+Input Read Pairs: 6481752 Both Surviving: 3979421 (61.39%) Forward Only Surviving: 1448596 (22.35%) Reverse Only Surviving: 156796 (2.42%) Dropped: 896939 (13.84%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/JT-37_R1.fastq.gz 0-Data/JT-37_R2.fastq.gz -baseout 1-QF/JT-37.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/JT-37_1P.fastq.gz 1-QF/JT-37_1U.fastq.gz 1-QF/JT-37_2P.fastq.gz 1-QF/JT-37_2U.fastq.gz
+Input Read Pairs: 6449294 Both Surviving: 4553424 (70.60%) Forward Only Surviving: 1052369 (16.32%) Reverse Only Surviving: 245831 (3.81%) Dropped: 597670 (9.27%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/JT-6_R1.fastq.gz 0-Data/JT-6_R2.fastq.gz -baseout 1-QF/JT-6.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/JT-6_1P.fastq.gz 1-QF/JT-6_1U.fastq.gz 1-QF/JT-6_2P.fastq.gz 1-QF/JT-6_2U.fastq.gz
+Input Read Pairs: 6609670 Both Surviving: 4222133 (63.88%) Forward Only Surviving: 1320134 (19.97%) Reverse Only Surviving: 230975 (3.49%) Dropped: 836428 (12.65%)
+TrimmomaticPE: Completed successfully
+TrimmomaticPE: Started with arguments:
+ -phred33 -threads 12 0-Data/Zymo-mock_R1.fastq.gz 0-Data/Zymo-mock_R2.fastq.gz -baseout 1-QF/Zymo-mock.fastq.gz SLIDINGWINDOW:3:20 MINLEN:75
+Using templated Output files: 1-QF/Zymo-mock_1P.fastq.gz 1-QF/Zymo-mock_1U.fastq.gz 1-QF/Zymo-mock_2P.fastq.gz 1-QF/Zymo-mock_2U.fastq.gz
+Input Read Pairs: 4985957 Both Surviving: 2651529 (53.18%) Forward Only Surviving: 1565442 (31.40%) Reverse Only Surviving: 133003 (2.67%) Dropped: 635983 (12.76%)
+TrimmomaticPE: Completed successfully

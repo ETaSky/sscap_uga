@@ -1,0 +1,408 @@
+---
+title: "R Notebook"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+## Initital set-up
+```{r setup}
+library(conflicted)
+library(knitr)
+library(tidyverse)
+library(extrafont)
+library(ape)
+library(vegan)
+library(ggrepel)
+library(agricolae)
+library(patchwork)
+
+
+conflict_prefer("strsplit", "Biostrings")
+conflict_prefer("filter", "dplyr")
+
+options(max.print="999")
+opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, prompt=FALSE, tidy = TRUE, comment = NA, message = FALSE)
+opts_knit$set(width=75)
+source("~/Dropbox/42-JCHWANG-RUTGERS/Projects-Rutgers/Src/utils.R")
+
+# set path
+opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
+setwd(rprojroot::find_rstudio_root_file())
+
+sessionInfo()
+```
+
+## Set_up the analysis
+1. Some misc data files
+```{r}
+GG_taxa <- read.delim(file = "gg_13_5_taxonomy.txt", header = F, stringsAsFactors = F)
+colnames(GG_taxa) <- c("OTU_ID", "Taxa")
+```
+
+2. Read 16S enriched count file
+```{r eval=FALSE}
+Enriched150 <- read.table("16Scap/Enriched_PE150_OTU_count.txt", header = F, sep = "\t", stringsAsFactors = F) # a table with OTU id, count, sampleid, and library type
+tmp <- Enriched150
+colnames(tmp) <- c("OTU_ID", "Count", "Sample", "Lib_Type")
+Enriched <- tmp %>% group_by(Sample) %>% mutate(Rel_ab = Count/sum(Count), Method = "Enriched") %>% merge(., GG_taxa, by = 1) %>% separate(Taxa, into = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F)  %>% ungroup
+save(Enriched, file = "Enriched_feature_table.Rdata")
+```
+
+3. Read Metagenomic sequencing data
+Below is the unenriched library analyzed by MetaPhlan2
+```{r eval=FALSE}
+fn_path <- "Meta/2-Metaphlan"
+fn <- list.files(fn_path, pattern = "_profile.txt", full.names = T)
+fn_profile <- lapply(fn, function(x) {read.table(x, header = F, sep = "\t", stringsAsFactors = F, comment.char = "#")})
+names(fn_profile) <- gsub("_profile.txt", "", basename(fn))
+
+Unenriched <- lapply(seq_along(fn_profile), function(x){fn_profile[[x]] %>% mutate(Sample = names(fn_profile)[x])}) %>% do.call("rbind", .)
+colnames(Unenriched) <- c("Taxa", "Rel_ab", "Coverage", "Avg_genome_length", "Count", "Sample")
+
+Meta_unenriched <- Unenriched %>% mutate(Lib_Type = "PE150/Meta", Method = "Unenriched") %>% separate(Taxa, into = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species", "Strain"), sep = "\\|", remove = F)  %>% ungroup
+save(Meta_unenriched, file = "Meta_unenriched_feature_table.Rdata")
+```
+Below is the unenriched library analyzed by mapping to 16S database (the same method as the enriched library)
+```{r eval=FALSE}
+## metagenomic results based on bbmap to 16S database
+Meta_16Smap <- read.table("Meta/Meta_PE150_OTU_count.txt", header = F, sep = "\t", stringsAsFactors = F)
+colnames(Meta_16Smap) <- c("OTU_ID", "Count", "Sample", "Lib_Type")
+Meta_16Smap$Lib_Type = "PE150/16SMap"
+Meta_16Smap <- Meta_16Smap %>% mutate(Method = "Unenriched") %>% merge(., GG_taxa, by = 1) %>% separate(Taxa, into = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F) %>% ungroup
+save(Meta_16Smap, file = "Meta_16Smap_feature_table.Rdata")
+```
+
+4. Creating working dataset
+```{r eval=FALSE}
+load("Enriched_feature_table.Rdata") # Enriched
+load("Meta_unenriched_feature_table.Rdata") # Meta_unenriched
+load("Meta_16Smap_feature_table.Rdata") # Meta_16Smap
+load("Amplicon/Amplicon_BG_feature_table.Rdata") # Amplicon_bg
+load("Amplicon/Amplicon_V3V4_feature_table.Rdata") # Amplicon_v3v4
+
+Amplicon_bg_int <- Amplicon_bg %>% gather(key = "SampleID", value = "Count", starts_with("BG")) %>% filter(Count>0) %>% group_by(SampleID) %>% mutate(Rel_ab = Count/sum(Count), Taxa = paste(Kingdom, Phylum, Class, Order, Family, Genus, Species, sep = "; "), SampleID = gsub("_F_filt.fastq.gz", "", SampleID), Lib_Type = "V4", Method = "Amplicon") %>% ungroup
+
+Amplicon_v3v4_int <- Amplicon_v3v4 %>% gather(key = "SampleID", value = "Count", c(starts_with(c("JW", "Zymo")))) %>% filter(Count>0) %>% group_by(SampleID) %>% mutate(Rel_ab = Count/sum(Count), Taxa = paste(Kingdom, Phylum, Class, Order, Family, Genus, Species, sep = "; "), SampleID = gsub("_F_filt.fastq.gz", "", SampleID), Lib_Type = "V3V4", Method = "Amplicon") %>% ungroup
+
+Amplicon_final <- rbind(Amplicon_bg_int, Amplicon_v3v4_int) %>% mutate(Sample = SampleID, SampleID = NULL)
+#house keeping for Amplicon
+Amplicon_final$Phylum[is.na(Amplicon_final$Phylum)] <- "p__"
+Amplicon_final$Class[is.na(Amplicon_final$Class)] <- "c__"
+Amplicon_final$Order[is.na(Amplicon_final$Order)] <- "o__"
+Amplicon_final$Family[is.na(Amplicon_final$Family)] <- "f__"
+Amplicon_final$Genus[is.na(Amplicon_final$Genus)] <- "g__"
+Amplicon_final$Species[is.na(Amplicon_final$Species)] <- "s__"
+
+Meta_unenriched_final <- Meta_unenriched %>% select(Sample, Rel_ab, Count, Taxa, c(2:9), Lib_Type, Method) %>% filter(!is.na(Species) & is.na(Strain)) %>% mutate(OTU_ID = NA) %>% select(-Strain) %>% ungroup
+
+Meta_16Smap_final <- Meta_16Smap %>% group_by(Sample) %>% mutate(Rel_ab = Count/sum(Count)) %>% ungroup
+```
+```{r eval=FALSE}
+coln <- intersect(colnames(Enriched), colnames(Amplicon_final)) %>% intersect(., colnames(Meta_unenriched_final)) %>% intersect(., colnames(Meta_16Smap_final))
+Work <- rbind(Enriched %>% select(any_of(coln)), Amplicon_final %>% select(any_of(coln)), Meta_unenriched_final %>% select(any_of(coln)), Meta_16Smap_final %>% select(any_of(coln))) %>% filter(!grepl("^JT|JWHM277D", Sample))
+
+## Unify the sample name
+Work$Sample <- gsub("Bei-", "BG", Work$Sample, fixed = T)
+Work$Sample[grepl("BEI-", Work$Sample)] <- "BEI.mock"
+Work$Sample[grepl("Zymo", Work$Sample)] <- "Zymo.mock"
+Work$Sample <- gsub("-S", "S", Work$Sample, fixed = T)
+Work$Sample[Work$Sample=="JWHM276D"] <- "BEI.mock"
+
+## house keeping
+Work <- Work %>% mutate(Rel_ab = ifelse(Lib_Type=="PE150/Meta", Rel_ab/100, Rel_ab))
+Work$Phylum[Work$Phylum=="p__[Thermi]"] <- "p__Deinococcus_Thermus" 
+
+Mock_theory <- read.delim(file = "MockCommunities.txt", stringsAsFactors = F)
+Mock_final <- Mock_theory %>% gather(key = "Sample", value = "Rel_ab", c(2:4), na.rm = T) %>% mutate(Taxa = paste(Kingdom, Phylum, Class, Order, Family, Genus, Species, sep = "; "))
+Mock_final$Phylum[Mock_final$Phylum=="p__[Thermi]"] <- "p__Deinococcus_Thermus" 
+
+saveRDS(Work, file = "Work_3MethodsCombined.Rds")
+saveRDS(Mock_final, file = "Mock_communities.Rds")
+```
+
+## Analysis
+### Data files
+```{r}
+Work <- readRDS("Work_3MethodsCombined.Rds")
+Mock_theory_final <- readRDS("Mock_communities.Rds")
+```
+
+### Mock community
+```{r}
+Mock_sample <- Work %>% filter(grepl("mock", Sample))
+
+# create phylum level abundance graph
+Mock_theory_p <- Mock_theory_final %>% filter(Sample!="JW.HM277D") %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup
+
+Mock_work_p <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum) %>% summarise(Rel_ab = sum(Rel_ab)) %>% 
+    ungroup %>% merge(., Mock_theory_p[, 3:6], by = c("Sample", "Kingdom", "Phylum"), all.x = T) %>%  # merge with the thoeretical community composition
+    mutate(Phylum2 = ifelse(is.na(Rel_ab.y), "z_Others", Phylum) %>% factor(levels = c("p__Actinobacteria", "p__Bacteroidetes", "p__Deinococcus_Thermus", "p__Firmicutes", "p__Proteobacteria", "z_Others"))) %>%
+    rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
+    mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
+
+Mock_work_p2 <- Mock_work_p %>% filter(!is.na(Rel_ab_t)) %>% group_by(Sample, Phylum2) %>% mutate(y_min = min(Rel_ab_s)/1.2, Phylum3 = gsub("p__", "", Phylum2))
+for (ss in c("BEI.mock", "Zymo.mock")) {
+    p = ggplot(Mock_work_p2 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
+        geom_point(size = 1) +
+        geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
+        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
+        geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 7) +
+        facet_wrap(.~Phylum3, scales = "free_x") +
+        #scale_y_continuous(trans = "log10", n.breaks = 5) +
+        coord_flip() +
+        labs(x = "", y = "Relative abundance (%)") +
+        theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
+        guides(color = F) +
+        ggtitle(ss)
+    print(p)
+    set_panel_size(p, file = paste0("Figures/Lollipop_mock_phylum_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
+}
+
+# create genus level abundance graph
+Mock_theory_g <- Mock_theory_final %>% filter(Sample!="JW.HM277D") %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family, Genus) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup
+
+Mock_work_g <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family, Genus) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup %>% split(., list(.$Method, .$Lib_Type), drop = T) %>% lapply(., function(x){merge(x, Mock_theory_g[, 3:10], by = c("Sample", "Kingdom", "Phylum", "Class", "Order", "Family", "Genus"), all = T) %>% mutate(Method = Method[1], Lib_Type = Lib_Type[1])}) %>% do.call("rbind", .) %>%  # merge with the thoeretical community composition
+    mutate(Genus2= ifelse(is.na(Rel_ab.y), "z_Others", Genus)) %>%
+    rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
+    mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
+
+col_custom = c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99')
+names(col_custom) = Mock_work_g %>% filter(is.na(Rel_ab_t), Rel_ab_s>0.005) %>% pull(Family) %>% unique
+
+Mock_work_g2 <- Mock_work_g %>% filter(Family %in% c("f__Enterobacteriaceae", "f__Listeriaceae", "f__Bacillaceae"), Genus=="g__") %>% mutate(Genus2 = gsub("f__", "zf_", Family))
+
+Mock_work_g3 <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% rbind(., Mock_work_g2) %>% group_by(Sample, Genus2) %>% mutate(y_min = min(Rel_ab_s, na.rm = T)/1.2, Genus3 = gsub("g__", "", Genus2))
+Mock_work_g3$Genus3 <- factor(Mock_work_g3$Genus3, levels = Mock_work_g3 %>% ungroup() %>% arrange(Phylum, Class, Order, Family, Genus) %>% distinct(Phylum, Class, Order, Family, Genus, Genus3) %>% pull(Genus3))
+
+Mock_work_g3 %>% ungroup() %>% distinct(Sample, Genus3) %>% select(Sample) %>% table
+
+ggplot(Mock_work_g3, aes( x= Genus3, y = Rel_ab_s*100, color = Methods_cat)) +
+        geom_point(size = 1.5) +
+        #geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
+        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.3,linetype = "dashed") +
+        facet_wrap(.~Sample, scales = "free_y", ncol = 1) +
+        coord_flip() +
+        labs(x = "", y = "Relative abundance (%)", color = "Methods") +
+        theme_classic(base_size = 8) + theme(plot.title.position = "plot", panel.grid.major = element_line(color = "gray", size = 0.2))
+set_panel_size(file = paste0("Figures/Lollipop_mock_genus.pdf"), width = unit(3, "in"), height = unit(c(0.5, 0.25), "in"))
+# 
+# for (ss in c("BEI.mock", "Zymo.mock")) {
+#     p = ggplot(Mock_work_g3 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
+#         geom_point(size = 1) +
+#         geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
+#         geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
+#         geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 2) +
+#         facet_wrap(.~Genus3, scales = "free_x", ncol = 4) +
+#         #scale_y_continuous(trans = "log10") +
+#         coord_flip() +
+#         labs(x = "", y = "Relative abundance (%)") +
+#         theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
+#         guides(color = F) +
+#         ggtitle(ss)
+#     print(p)
+#     set_panel_size(p, file = paste0("Figures/Lollipop_mock_genus_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
+# }
+
+# create family level abundance graph
+Mock_theory_f <- Mock_theory_final %>% filter(Sample!="JW.HM277D") %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup
+
+Mock_work_f <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup %>% split(., list(.$Method, .$Lib_Type), drop = T) %>% lapply(., function(x){merge(x, Mock_theory_f[, 3:9], by = c("Sample", "Kingdom", "Phylum", "Class", "Order", "Family"), all = T) %>% mutate(Method = Method[1], Lib_Type = Lib_Type[1])}) %>% do.call("rbind", .) %>%  # merge with the thoeretical community composition
+    mutate(Family2= ifelse(is.na(Rel_ab.y), "z_Others", Family)) %>%
+    rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
+    mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
+
+Mock_work_f2 <- Mock_work_f %>% filter(!is.na(Rel_ab_t)) %>% group_by(Sample, Family2) %>% mutate(y_min = min(Rel_ab_s, na.rm = T)/1.2, Family3 = gsub("f__", "", Family2))
+
+for (ss in c("BEI.mock", "Zymo.mock")) {
+    p = ggplot(Mock_work_f2 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
+        geom_point(size = 1) +
+        geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
+        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
+        geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 2) +
+        facet_wrap(.~Family3, scales = "free_x", ncol = 4) +
+        #scale_y_continuous(trans = "log10") +
+        coord_flip() +
+        labs(x = "", y = "Relative abundance (%)") +
+        theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
+        guides(color = F) +
+        ggtitle(ss)
+    print(p)
+    set_panel_size(p, file = paste0("Figures/Lollipop_mock_family_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
+}
+
+```
+
+```{r}
+# Check the accuracy of each sample
+## use the dataset without corrections
+Mock_g_s_fc <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s))
+
+ggplot(Mock_g_s_fc, aes(x = paste(Method, Lib_Type, sep = "\n"), y = fc)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(aes(color = Genus), position = position_jitter(width = 0.05)) +
+    facet_grid(.~Sample) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 2) +
+    labs(x = "Method, Sequencing length", y = "Fold Change (Upper or Under)\n between measured abundance vs nominal abundance", title = "Original comparison")
+set_panel_size(file = "Figures/Boxplot_fc_g_org.pdf", width = unit(3, "in"), height = unit(6, "in"), panel.size = T, useDingbats = F)
+
+## resolve the three taxa that is likely the miss in the original dataset
+Mock_g_s_fc_edit1 <- Mock_work_g %>% filter(!is.na(Rel_ab_t), !is.na(Rel_ab_s))
+Mock_g_s_fc_edit2 <- Mock_work_g %>% filter(!is.na(Rel_ab_t), is.na(Rel_ab_s)) %>% select(-Rel_ab_s) %>% merge(., Mock_work_g %>% filter(is.na(Rel_ab_t), Rel_ab_s>0.02) %>% select(-c(Genus, Rel_ab_t, Genus2)), all = T )
+Mock_g_s_fc_edit <- rbind(Mock_g_s_fc_edit1, Mock_g_s_fc_edit2) 
+Mock_g_s_fc_edit$Genus[is.na(Mock_g_s_fc_edit$Genus)] <- "g__Bacillus"
+Mock_g_s_fc_edit$Genus2[is.na(Mock_g_s_fc_edit$Genus2)] <- "g__Bacillus"
+Mock_g_s_fc_edit$Rel_ab_t[is.na(Mock_g_s_fc_edit$Rel_ab_t)] <- 0
+Mock_g_s_fc_edit$Rel_ab_s[is.na(Mock_g_s_fc_edit$Rel_ab_s)] <- 0
+
+Mock_g_s_fc_edit <- Mock_g_s_fc_edit %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family, Genus, Genus2) %>% summarise_all(., sum) %>% ungroup %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s), genus_label = factor(Genus) %>% as.numeric())
+
+Mock_g_s_fc_edit_duncan <- Mock_g_s_fc_edit %>% mutate(Grp = paste(Method, Lib_Type, sep = "-")) %>% split(., .$Sample) %>% lapply(., function(x){(lm(fc ~ Grp, data = x) %>% duncan.test(., trt = "Grp"))$groups}) %>% do.call("rbind", .) %>% rownames_to_column(var = "UU") %>% separate(UU, into = c("Sample", "Method", "Lib_Type"), sep = "k\\.|-", ) %>% mutate(Sample = gsub("moc", "mock", Sample, fixed = T))
+
+ggplot(Mock_g_s_fc_edit, aes(x = paste(Method, Lib_Type, sep = "\n"), y = fc)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_text(aes(label = genus_label, color = paste0(genus_label, ": ", Genus)), size = 8/.pt) +
+    geom_text(data = Mock_g_s_fc_edit_duncan, aes(y = 0.8, label = groups), size = 7/.pt) +
+    geom_text(aes(x = 2, y = 0.9, label = "Duncan's Multiple Range Test"), size = 7/.pt, hjust = 0) +
+    facet_grid(.~Sample) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 3) +
+    labs(x = "Method, Sequencing length", y = "Fold Change (Upper or Under)\n between measured abundance vs nominal abundance", color = "Genus", title = "With potential corrections")
+set_panel_size(file = "Figures/Boxplot_fc_g_revised.pdf", width = unit(3.5, "in"), height = unit(6, "in"), panel.size = T, useDingbats = F)
+```
+
+
+### Diversity
+#### Beta diversity
+```{r}
+# The diversity analysis was performed using family level composition
+Work_f <- Work %>% group_by(across(c(Sample, Method, Lib_Type, Kingdom:Family))) %>% summarise(Rel_ab = sum(Rel_ab))
+Work_f_ft <- Work_f %>% unite(col = SampleID, Sample:Lib_Type, sep = "_") %>% unite(col = Taxa, Kingdom:Family, sep = ";") %>% mutate(Taxa = gsub("__", "_", Taxa, fixed = T)) %>% spread(key = Taxa, value = Rel_ab, fill = 0) %>% column_to_rownames(var = "SampleID")
+
+# Bray_curtis
+Family_bray <- vegdist(Work_f_ft, method = "bray")
+Family_bray_pcoa <- pcoa(Family_bray)
+
+Family_bray_data <- Family_bray_pcoa$vectors[,1:5] %>% as.data.frame() %>% rownames_to_column(var = "ID") %>% separate(col = ID, into = c("Sample", "Library"), sep = "_", remove = F, extra = "merge") %>% mutate(Projects = ifelse(grepl("mock", Sample), Sample, ifelse(grepl("JWS", Sample), "Rat", "Mouse"))) %>% mutate(SampleNo = factor(Sample) %>% as.numeric)
+
+varPC1=round(Family_bray_pcoa$values$Relative_eig[1]*100, 2)
+varPC2=round(Family_bray_pcoa$values$Relative_eig[2]*100, 2)
+varPC3=round(Family_bray_pcoa$values$Relative_eig[3]*100, 2)
+varPC4=round(Family_bray_pcoa$values$Relative_eig[4]*100, 2)
+
+ggplot(Family_bray_data, aes(x = Axis.1, y = Axis.2, shape = Library, fill = Projects)) +
+    geom_point(size = 2) +
+    geom_text_repel(aes(label = SampleNo), size = 6/.pt, color = "black", segment.size = 0.2) + 
+    scale_shape_manual(values = c(21, 21, 22, 23, 24, 25))+
+    scale_color_manual(values = c('#e41a1c','#377eb8','#4daf4a','#984ea3')) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 1, panel.border = element_rect(color = "black", fill = NA), panel.grid.major = element_line(color = "grey90", linetype = "dashed", size = 0.2)) +
+    labs(x=paste0("PC1: ", varPC1, "% explained variation"), y=paste0("PC2: ", varPC2, "% explained variation"), title = "PCoA analysis on Bray-Curtis dissimilarity \nbased on family level taxa profile", subtitle = "PC1 vs PC2") +
+    guides(fill= guide_legend(override.aes = list(size = 2.5, shape = 21)))
+set_panel_size(file = "Figures/Beta_Bray_family_PC1vsPC2.pdf", width = unit(3.5, "in"), height = unit(3.5, "in"), useDingbats = F)
+
+# Jaccard
+Family_jacc <- vegdist(Work_f_ft, method = "jaccard", binary = T)
+Family_jacc_pcoa <- pcoa(Family_jacc)
+
+Family_jacc_data <- Family_jacc_pcoa$vectors[,1:5] %>% as.data.frame() %>% rownames_to_column(var = "ID") %>% separate(col = ID, into = c("Sample", "Library"), sep = "_", remove = F, extra = "merge") %>% mutate(Projects = ifelse(grepl("mock", Sample), Sample, ifelse(grepl("JWS", Sample), "Rat", "Mouse"))) %>% mutate(SampleNo = factor(Sample) %>% as.numeric)
+
+varPC1=round(Family_jacc_pcoa$values$Relative_eig[1]*100, 2)
+varPC2=round(Family_jacc_pcoa$values$Relative_eig[2]*100, 2)
+varPC3=round(Family_jacc_pcoa$values$Relative_eig[3]*100, 2)
+varPC4=round(Family_jacc_pcoa$values$Relative_eig[4]*100, 2)
+
+ggplot(Family_jacc_data, aes(x = Axis.1, y = Axis.2, shape = Library, fill = Projects)) +
+    geom_point(size = 2) +
+    geom_text_repel(aes(label = SampleNo), size = 6/.pt, color = "black", segment.size = 0.2) + 
+    scale_shape_manual(values = c(21, 21, 22, 23, 24, 25))+
+    scale_color_manual(values = c('#e41a1c','#377eb8','#4daf4a','#984ea3')) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 1, panel.border = element_rect(color = "black", fill = NA), panel.grid.major = element_line(color = "grey90", linetype = "dashed", size = 0.2)) +
+    labs(x=paste0("PC1: ", varPC1, "% explained variation"), y=paste0("PC2: ", varPC2, "% explained variation"), title = "PCoA analysis on Jaccard dissimilarity \nbased on family level taxa profile", subtitle = "PC1 vs PC2") +
+    guides(fill= guide_legend(override.aes = list(size = 2.5, shape = 21)))
+set_panel_size(file = "Figures/Beta_jacc_family_PC1vsPC2.pdf", width = unit(3.5, "in"), height = unit(3.5, "in"), useDingbats = F)
+
+
+```
+
+```{r}
+# The diversity analysis was performed using Genus level composition
+Work_g <- Work %>% group_by(across(c(Sample, Method, Lib_Type, Kingdom:Genus))) %>% summarise(Rel_ab = sum(Rel_ab))
+Work_g_ft <- Work_g %>% unite(col = SampleID, Sample:Lib_Type, sep = "_") %>% unite(col = Taxa, Kingdom:Genus, sep = ";") %>% mutate(Taxa = gsub("__", "_", Taxa, fixed = T)) %>% spread(key = Taxa, value = Rel_ab, fill = 0) %>% column_to_rownames(var = "SampleID")
+
+# Bray_curtis
+Genus_bray <- vegdist(Work_g_ft, method = "bray")
+Genus_bray_pcoa <- pcoa(Genus_bray)
+
+Genus_bray_data <- Genus_bray_pcoa$vectors[,1:5] %>% as.data.frame() %>% rownames_to_column(var = "ID") %>% separate(col = ID, into = c("Sample", "Library"), sep = "_", remove = F, extra = "merge") %>% mutate(Projects = ifelse(grepl("mock", Sample), Sample, ifelse(grepl("JWS", Sample), "Rat", "Mouse"))) %>% mutate(SampleNo = factor(Sample) %>% as.numeric)
+
+varPC1=round(Genus_bray_pcoa$values$Relative_eig[1]*100, 2)
+varPC2=round(Genus_bray_pcoa$values$Relative_eig[2]*100, 2)
+varPC3=round(Genus_bray_pcoa$values$Relative_eig[3]*100, 2)
+varPC4=round(Genus_bray_pcoa$values$Relative_eig[4]*100, 2)
+
+ggplot(Genus_bray_data, aes(x = Axis.1, y = Axis.2, shape = Library, fill = Projects)) +
+    geom_point(size = 2) +
+    geom_text_repel(aes(label = SampleNo), size = 6/.pt, color = "black", segment.size = 0.2) + 
+    scale_shape_manual(values = c(21, 21, 22, 23, 24, 25))+
+    scale_color_manual(values = c('#e41a1c','#377eb8','#4daf4a','#984ea3')) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 1, panel.border = element_rect(color = "black", fill = NA), panel.grid.major = element_line(color = "grey90", linetype = "dashed", size = 0.2)) +
+    labs(x=paste0("PC1: ", varPC1, "% explained variation"), y=paste0("PC2: ", varPC2, "% explained variation"), title = "PCoA analysis on Bray-Curtis dissimilarity \nbased on Genus level taxa profile", subtitle = "PC1 vs PC2") +
+    guides(fill= guide_legend(override.aes = list(size = 2.5, shape = 21)))
+set_panel_size(file = "Figures/Beta_Bray_Genus_PC1vsPC2.pdf", width = unit(3.5, "in"), height = unit(3.5, "in"), useDingbats = F)
+
+# jaccard
+Genus_jacc <- vegdist(Work_g_ft, method = "jaccard", binary = T)
+Genus_jacc_pcoa <- pcoa(Genus_jacc)
+
+Genus_jacc_data <- Genus_jacc_pcoa$vectors[,1:5] %>% as.data.frame() %>% rownames_to_column(var = "ID") %>% separate(col = ID, into = c("Sample", "Library"), sep = "_", remove = F, extra = "merge") %>% mutate(Projects = ifelse(grepl("mock", Sample), Sample, ifelse(grepl("JWS", Sample), "Rat", "Mouse"))) %>% mutate(SampleNo = factor(Sample) %>% as.numeric)
+
+varPC1=round(Genus_jacc_pcoa$values$Relative_eig[1]*100, 2)
+varPC2=round(Genus_jacc_pcoa$values$Relative_eig[2]*100, 2)
+varPC3=round(Genus_jacc_pcoa$values$Relative_eig[3]*100, 2)
+varPC4=round(Genus_jacc_pcoa$values$Relative_eig[4]*100, 2)
+
+ggplot(Genus_jacc_data, aes(x = Axis.1, y = Axis.2, shape = Library, fill = Projects)) +
+    geom_point(size = 2) +
+    geom_text_repel(aes(label = SampleNo), size = 6/.pt, color = "black", segment.size = 0.2) + 
+    scale_shape_manual(values = c(21, 21, 22, 23, 24, 25))+
+    scale_color_manual(values = c('#e41a1c','#377eb8','#4daf4a','#984ea3')) +
+    theme_classic(base_size = 10) + theme(aspect.ratio = 1, panel.border = element_rect(color = "black", fill = NA), panel.grid.major = element_line(color = "grey90", linetype = "dashed", size = 0.2)) +
+    labs(x=paste0("PC1: ", varPC1, "% explained variation"), y=paste0("PC2: ", varPC2, "% explained variation"), title = "PCoA analysis on Jaccard dissimilarity \nbased on Genus level taxa profile", subtitle = "PC1 vs PC2") +
+    guides(fill= guide_legend(override.aes = list(size = 2.5, shape = 21)))
+set_panel_size(file = "Figures/Beta_jacc_Genus_PC1vsPC2.pdf", width = unit(3.5, "in"), height = unit(3.5, "in"), useDingbats = F)
+```
+
+#### Distance
+```{r}
+Family_bray_dist <- tidy(Family_bray)
+Family_bray_dist_tbl <- Family_bray_dist %>% separate(item1, into = c("Sample1", "Library1"), sep = "_", extra = "merge") %>% separate(item2, into = c("Sample2", "Library2"), sep = "_", extra = "merge") %>% filter(Sample1==Sample2) %>% mutate(Projects = ifelse(grepl("mock", Sample1), "Mock", ifelse(grepl("JWS", Sample1), "Rat", "Mouse")), Comparison = paste(Library1, Library2, sep = "v"))
+
+Family_bray_dist_tbl_duncan <- Family_bray_dist_tbl %>% filter(Projects!="Mock") %>% split(., .$Projects) %>% lapply(., function(x){(lm(distance ~ Comparison, data = x) %>% duncan.test(., trt = "Comparison"))$groups}) %>% do.call("rbind", .) %>% rownames_to_column(var = "UU") %>% separate(UU, into = c("Projects", "Comparison"), sep = "\\.", )
+
+ggplot(Family_bray_dist_tbl %>% filter(Projects!="Mock"), aes(x = Comparison, y = distance)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(size = 1, position = position_jitter(width = 0.1))+
+    facet_grid(.~Projects, scales = "free_x") +
+    geom_text(data = Family_bray_dist_tbl_duncan, aes(y = -0.05, label = groups), size = 6/.pt) +
+    geom_text(aes(x = 2, y = 0, label = "Duncan's Multiple Range Test"), size = 6/.pt, hjust = 0) +
+    theme_classic(base_size = 8) + theme(axis.text.x = element_text(angle = 90, hjust =1)) +
+    labs(x = "", y = "Bray-Curtis Distance", title = "Comparison of bray-curtis distance", subtitle = "Based on Family level composition")
+set_panel_size(file = "Figures/Bray_distance_family.pdf", width = unit(3, "in"), height = unit(3, "in"), useDingbats = F)
+
+Genus_bray_dist <- tidy(Genus_bray)
+Genus_bray_dist_tbl <- Genus_bray_dist %>% separate(item1, into = c("Sample1", "Library1"), sep = "_", extra = "merge") %>% separate(item2, into = c("Sample2", "Library2"), sep = "_", extra = "merge") %>% filter(Sample1==Sample2) %>% mutate(Projects = ifelse(grepl("mock", Sample1), "Mock", ifelse(grepl("JWS", Sample1), "Rat", "Mouse")), Comparison = paste(Library1, Library2, sep = "v"))
+
+Genus_bray_dist_tbl_duncan <- Genus_bray_dist_tbl %>% filter(Projects!="Mock") %>% split(., .$Projects) %>% lapply(., function(x){(lm(distance ~ Comparison, data = x) %>% duncan.test(., trt = "Comparison"))$groups}) %>% do.call("rbind", .) %>% rownames_to_column(var = "UU") %>% separate(UU, into = c("Projects", "Comparison"), sep = "\\.", )
+
+ggplot(Genus_bray_dist_tbl %>% filter(Projects!="Mock"), aes(x = Comparison, y = distance)) +
+    geom_boxplot(outlier.shape = NA) +
+    geom_point(size = 1, position = position_jitter(width = 0.1))+
+    facet_grid(.~Projects, scales = "free_x") +
+    geom_text(data = Genus_bray_dist_tbl_duncan, aes(y = -0.05, label = groups), size = 6/.pt) +
+    geom_text(aes(x = 2, y = 0, label = "Duncan's Multiple Range Test"), size = 6/.pt, hjust = 0) +
+    theme_classic(base_size = 8) + theme(axis.text.x = element_text(angle = 90, hjust =1)) +
+    labs(x = "", y = "Bray-Curtis Distance", title = "Comparison of bray-curtis distance", subtitle = "Based on Genus level composition")
+set_panel_size(file = "Figures/Bray_distance_Genus.pdf", width = unit(3, "in"), height = unit(3, "in"), useDingbats = F)
+
+
+```
+
+
