@@ -17,4 +17,11 @@ Thumbs.db
 Old/
 Trash/
 
+# R
+# History files
+.Rhistory
+.Rapp.history
+
+# Session Data files
+.RData
 .Rproj.user

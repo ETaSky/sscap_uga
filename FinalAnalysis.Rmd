@@ -4,16 +4,16 @@ output: html_document
 editor_options: 
   chunk_output_type: console
 ---
-## Initital set-up
+## Setup
 ```{r setup}
 library(conflicted)
 library(knitr)
 library(tidyverse)
-library(extrafont)
 library(ape)
 library(vegan)
 library(ggrepel)
 library(agricolae)
+library(ggbeeswarm)
 library(patchwork)
 
 
@@ -23,23 +23,24 @@ conflict_prefer("filter", "dplyr")
 options(max.print="999")
 opts_chunk$set(echo = TRUE, cache = TRUE, warning = FALSE, prompt=FALSE, tidy = TRUE, comment = NA, message = FALSE)
 opts_knit$set(width=75)
-source("~/Dropbox/42-JCHWANG-RUTGERS/Projects-Rutgers/Src/utils.R")
+source("assets/utils.R")
 
 # set path
 opts_knit$set(root.dir = rprojroot::find_rstudio_root_file())
 setwd(rprojroot::find_rstudio_root_file())
 
+path_data = "D:/Dropbox/Academia/Data/sscap_uga/"
 sessionInfo()
 ```
 
-## Set_up the analysis
-1. Some misc data files
+## Set_up the analysis (No need to run)
+### Some misc data files
 ```{r}
-GG_taxa <- read.delim(file = "gg_13_5_taxonomy.txt", header = F, stringsAsFactors = F)
+GG_taxa <- read.delim(file = paste0(path_data, "assets/gg_13_5_taxonomy.txt"), header = F, stringsAsFactors = F)
 colnames(GG_taxa) <- c("OTU_ID", "Taxa")
 ```
 
-2. Read 16S enriched count file
+### Read 16S enriched count file
 ```{r eval=FALSE}
 Enriched150 <- read.table("16Scap/Enriched_PE150_OTU_count.txt", header = F, sep = "\t", stringsAsFactors = F) # a table with OTU id, count, sampleid, and library type
 tmp <- Enriched150
@@ -47,8 +48,7 @@ colnames(tmp) <- c("OTU_ID", "Count", "Sample", "Lib_Type")
 Enriched <- tmp %>% group_by(Sample) %>% mutate(Rel_ab = Count/sum(Count), Method = "Enriched") %>% merge(., GG_taxa, by = 1) %>% separate(Taxa, into = c("Kingdom", "Phylum", "Class", "Order", "Family", "Genus", "Species"), sep = "; ", remove = F)  %>% ungroup
 save(Enriched, file = "Enriched_feature_table.Rdata")
 ```
-
-3. Read Metagenomic sequencing data
+### Read Metagenomic sequencing data
 Below is the unenriched library analyzed by MetaPhlan2
 ```{r eval=FALSE}
 fn_path <- "Meta/2-Metaphlan"
@@ -72,7 +72,7 @@ Meta_16Smap <- Meta_16Smap %>% mutate(Method = "Unenriched") %>% merge(., GG_tax
 save(Meta_16Smap, file = "Meta_16Smap_feature_table.Rdata")
 ```
 
-4. Creating working dataset
+### Creating working dataset
 ```{r eval=FALSE}
 load("Enriched_feature_table.Rdata") # Enriched
 load("Meta_unenriched_feature_table.Rdata") # Meta_unenriched
@@ -121,7 +121,7 @@ saveRDS(Mock_final, file = "Mock_communities.Rds")
 ```
 
 ## Analysis
-### Data files
+Data files
 ```{r}
 Work <- readRDS("Work_3MethodsCombined.Rds")
 Mock_theory_final <- readRDS("Mock_communities.Rds")
@@ -140,23 +140,18 @@ Mock_work_p <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylu
     rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
     mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
 
-Mock_work_p2 <- Mock_work_p %>% filter(!is.na(Rel_ab_t)) %>% group_by(Sample, Phylum2) %>% mutate(y_min = min(Rel_ab_s)/1.2, Phylum3 = gsub("p__", "", Phylum2))
-for (ss in c("BEI.mock", "Zymo.mock")) {
-    p = ggplot(Mock_work_p2 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
-        geom_point(size = 1) +
-        geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
-        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
-        geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 7) +
-        facet_wrap(.~Phylum3, scales = "free_x") +
-        #scale_y_continuous(trans = "log10", n.breaks = 5) +
-        coord_flip() +
-        labs(x = "", y = "Relative abundance (%)") +
-        theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
-        guides(color = F) +
-        ggtitle(ss)
-    print(p)
-    set_panel_size(p, file = paste0("Figures/Lollipop_mock_phylum_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
-}
+Mock_work_p2 <- Mock_work_p %>% filter(!is.na(Rel_ab_t)) %>% group_by(Sample, Phylum2) %>% mutate(Phylum3 = gsub("p__", "", Phylum2))
+ggplot(Mock_work_p2, aes(x = Phylum3, y = Rel_ab_s*100, fill = Methods_cat)) +
+    geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2) +
+    geom_point(size = 1.5, shape = 21, alpha = 0.7, position = position_jitter(width = 0.25))+
+    #geom_beeswarm(size = 2, shape = 21, alpha = 0.5) +
+    facet_wrap(.~Sample, scales = "free_y", ncol = 1) +
+    coord_flip() +
+    labs(x = "", y = "Relative abundance (%)", fill = "Methods") +
+    theme_classic(base_size = 8) + theme(plot.title.position = "plot", panel.grid.major = element_line(color = "gray", size = 0.2))
+
+set_panel_size(file = paste0("Figures/Lollipop_mock_phylum.pdf"), width = unit(3, "in"), height = unit(c(1.2, 0.5), "in"))
+
 
 # create genus level abundance graph
 Mock_theory_g <- Mock_theory_final %>% filter(Sample!="JW.HM277D") %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family, Genus) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup
@@ -166,78 +161,30 @@ Mock_work_g <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylu
     rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
     mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
 
-col_custom = c('#a6cee3','#1f78b4','#b2df8a','#33a02c','#fb9a99','#e31a1c','#fdbf6f','#ff7f00','#cab2d6','#6a3d9a','#ffff99')
-names(col_custom) = Mock_work_g %>% filter(is.na(Rel_ab_t), Rel_ab_s>0.005) %>% pull(Family) %>% unique
+Mock_work_g2 <- Mock_work_g %>% filter(Family %in% c("f__Enterobacteriaceae", "f__Listeriaceae", "f__Bacillaceae"), Genus=="g__") %>% mutate(Genus2 = gsub("f__", "f_", Family))
 
-Mock_work_g2 <- Mock_work_g %>% filter(Family %in% c("f__Enterobacteriaceae", "f__Listeriaceae", "f__Bacillaceae"), Genus=="g__") %>% mutate(Genus2 = gsub("f__", "zf_", Family))
-
-Mock_work_g3 <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% rbind(., Mock_work_g2) %>% group_by(Sample, Genus2) %>% mutate(y_min = min(Rel_ab_s, na.rm = T)/1.2, Genus3 = gsub("g__", "", Genus2))
+Mock_work_g3 <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% rbind(., Mock_work_g2) %>% group_by(Sample, Genus2) %>% mutate(Genus3 = gsub("g__", "", Genus2))
 Mock_work_g3$Genus3 <- factor(Mock_work_g3$Genus3, levels = Mock_work_g3 %>% ungroup() %>% arrange(Phylum, Class, Order, Family, Genus) %>% distinct(Phylum, Class, Order, Family, Genus, Genus3) %>% pull(Genus3))
 
 Mock_work_g3 %>% ungroup() %>% distinct(Sample, Genus3) %>% select(Sample) %>% table
 
-ggplot(Mock_work_g3, aes( x= Genus3, y = Rel_ab_s*100, color = Methods_cat)) +
-        geom_point(size = 1.5) +
-        #geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
-        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.3,linetype = "dashed") +
-        facet_wrap(.~Sample, scales = "free_y", ncol = 1) +
-        coord_flip() +
-        labs(x = "", y = "Relative abundance (%)", color = "Methods") +
-        theme_classic(base_size = 8) + theme(plot.title.position = "plot", panel.grid.major = element_line(color = "gray", size = 0.2))
-set_panel_size(file = paste0("Figures/Lollipop_mock_genus.pdf"), width = unit(3, "in"), height = unit(c(0.5, 0.25), "in"))
-# 
-# for (ss in c("BEI.mock", "Zymo.mock")) {
-#     p = ggplot(Mock_work_g3 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
-#         geom_point(size = 1) +
-#         geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
-#         geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
-#         geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 2) +
-#         facet_wrap(.~Genus3, scales = "free_x", ncol = 4) +
-#         #scale_y_continuous(trans = "log10") +
-#         coord_flip() +
-#         labs(x = "", y = "Relative abundance (%)") +
-#         theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
-#         guides(color = F) +
-#         ggtitle(ss)
-#     print(p)
-#     set_panel_size(p, file = paste0("Figures/Lollipop_mock_genus_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
-# }
-
-# create family level abundance graph
-Mock_theory_f <- Mock_theory_final %>% filter(Sample!="JW.HM277D") %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup
-
-Mock_work_f <- Mock_sample %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family) %>% summarise(Rel_ab = sum(Rel_ab)) %>% ungroup %>% split(., list(.$Method, .$Lib_Type), drop = T) %>% lapply(., function(x){merge(x, Mock_theory_f[, 3:9], by = c("Sample", "Kingdom", "Phylum", "Class", "Order", "Family"), all = T) %>% mutate(Method = Method[1], Lib_Type = Lib_Type[1])}) %>% do.call("rbind", .) %>%  # merge with the thoeretical community composition
-    mutate(Family2= ifelse(is.na(Rel_ab.y), "z_Others", Family)) %>%
-    rename(Rel_ab_s = Rel_ab.x, Rel_ab_t = Rel_ab.y) %>%
-    mutate(Analysis_method = case_when(Method=="Amplicon" ~ "Denoising", Method=="Enriched" ~ "16S Mapping", grepl(pattern = "16S", Lib_Type) ~ "16S Mapping", grepl(pattern = "Meta", Lib_Type) ~ "Marker Gene"), Methods_cat = paste(Method, Analysis_method, sep = "\n"))
-
-Mock_work_f2 <- Mock_work_f %>% filter(!is.na(Rel_ab_t)) %>% group_by(Sample, Family2) %>% mutate(y_min = min(Rel_ab_s, na.rm = T)/1.2, Family3 = gsub("f__", "", Family2))
-
-for (ss in c("BEI.mock", "Zymo.mock")) {
-    p = ggplot(Mock_work_f2 %>% filter(Sample==ss), aes( x= Methods_cat, y = Rel_ab_s*100, color = Methods_cat)) +
-        geom_point(size = 1) +
-        geom_segment(aes(x = Methods_cat, xend = Methods_cat, y = y_min*100, yend = Rel_ab_s*100)) +
-        geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2,linetype = "dashed") +
-        geom_text(aes(x = Inf, y = Rel_ab_t*100, label = paste0("Nominal: ", Rel_ab_t*100, "%")), color = "black", size = 8/.pt, hjust = 1.1, vjust = 2) +
-        facet_wrap(.~Family3, scales = "free_x", ncol = 4) +
-        #scale_y_continuous(trans = "log10") +
-        coord_flip() +
-        labs(x = "", y = "Relative abundance (%)") +
-        theme_classic(base_size = 8) + theme(aspect.ratio = 0.6, plot.title.position = "plot") +
-        guides(color = F) +
-        ggtitle(ss)
-    print(p)
-    set_panel_size(p, file = paste0("Figures/Lollipop_mock_family_", ss, ".pdf"), width = unit(2, "in"), height = unit(1.2, "in"))
-}
+ggplot(Mock_work_g3, aes( x= Genus3, y = Rel_ab_s*100, fill = Methods_cat)) +
+    geom_crossbar(aes(ymin = Rel_ab_t*100, ymax = Rel_ab_t*100, y = Rel_ab_t*100), color = "black", width = 1, size = 0.2) +
+    geom_beeswarm(size = 1.5, shape = 21, alpha = 0.7) +
+    facet_wrap(.~Sample, scales = "free_y", ncol = 1) +
+    coord_flip() +
+    labs(x = "", y = "Relative abundance (%)", fill = "Methods") +
+    theme_classic(base_size = 8) + theme(plot.title.position = "plot", panel.grid.major = element_line(color = "gray", size = 0.2))
+set_panel_size(file = paste0("Figures/Lollipop_mock_genus.pdf"), width = unit(3, "in"), height = unit(c(3, 1.5), "in"))
 
 ```
 
 ```{r}
 # Check the accuracy of each sample
 ## use the dataset without corrections
-Mock_g_s_fc <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s))
+Mock_g_s_fc <- Mock_work_g %>% filter(!is.na(Rel_ab_t)) %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s)) %>% select(-Method, -Analysis_method, -Lib_Type)
 
-ggplot(Mock_g_s_fc, aes(x = paste(Method, Lib_Type, sep = "\n"), y = fc)) +
+ggplot(Mock_g_s_fc, aes(x = Methods_cat, y = fc)) +
     geom_boxplot(outlier.shape = NA) +
     geom_point(aes(color = Genus), position = position_jitter(width = 0.05)) +
     facet_grid(.~Sample) +
@@ -248,17 +195,17 @@ set_panel_size(file = "Figures/Boxplot_fc_g_org.pdf", width = unit(3, "in"), hei
 ## resolve the three taxa that is likely the miss in the original dataset
 Mock_g_s_fc_edit1 <- Mock_work_g %>% filter(!is.na(Rel_ab_t), !is.na(Rel_ab_s))
 Mock_g_s_fc_edit2 <- Mock_work_g %>% filter(!is.na(Rel_ab_t), is.na(Rel_ab_s)) %>% select(-Rel_ab_s) %>% merge(., Mock_work_g %>% filter(is.na(Rel_ab_t), Rel_ab_s>0.02) %>% select(-c(Genus, Rel_ab_t, Genus2)), all = T )
-Mock_g_s_fc_edit <- rbind(Mock_g_s_fc_edit1, Mock_g_s_fc_edit2) 
+Mock_g_s_fc_edit <- rbind(Mock_g_s_fc_edit1, Mock_g_s_fc_edit2) %>% select(-Method, -Analysis_method, -Lib_Type)
 Mock_g_s_fc_edit$Genus[is.na(Mock_g_s_fc_edit$Genus)] <- "g__Bacillus"
 Mock_g_s_fc_edit$Genus2[is.na(Mock_g_s_fc_edit$Genus2)] <- "g__Bacillus"
 Mock_g_s_fc_edit$Rel_ab_t[is.na(Mock_g_s_fc_edit$Rel_ab_t)] <- 0
 Mock_g_s_fc_edit$Rel_ab_s[is.na(Mock_g_s_fc_edit$Rel_ab_s)] <- 0
 
-Mock_g_s_fc_edit <- Mock_g_s_fc_edit %>% group_by(Method, Lib_Type, Sample, Kingdom, Phylum, Class, Order, Family, Genus, Genus2) %>% summarise_all(., sum) %>% ungroup %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s), genus_label = factor(Genus) %>% as.numeric())
+Mock_g_s_fc_edit <- Mock_g_s_fc_edit %>% group_by(Methods_cat, Sample, Kingdom, Phylum, Class, Order, Family, Genus, Genus2) %>% summarise_all(., sum) %>% ungroup %>% mutate(fc = ifelse(Rel_ab_s>Rel_ab_t, Rel_ab_s/Rel_ab_t, Rel_ab_t/Rel_ab_s), genus_label = factor(Genus) %>% as.numeric())
 
-Mock_g_s_fc_edit_duncan <- Mock_g_s_fc_edit %>% mutate(Grp = paste(Method, Lib_Type, sep = "-")) %>% split(., .$Sample) %>% lapply(., function(x){(lm(fc ~ Grp, data = x) %>% duncan.test(., trt = "Grp"))$groups}) %>% do.call("rbind", .) %>% rownames_to_column(var = "UU") %>% separate(UU, into = c("Sample", "Method", "Lib_Type"), sep = "k\\.|-", ) %>% mutate(Sample = gsub("moc", "mock", Sample, fixed = T))
+Mock_g_s_fc_edit_duncan <- Mock_g_s_fc_edit %>% split(., .$Sample) %>% lapply(., function(x){(lm(fc ~ Methods_cat, data = x) %>% duncan.test(., trt = "Methods_cat"))$groups}) %>% do.call("rbind", .) %>% rownames_to_column(var = "UU") %>% separate(UU, into = c("Sample", "Methods_cat"), sep = "k\\.|-", ) %>% mutate(Sample = gsub("moc", "mock", Sample, fixed = T))
 
-ggplot(Mock_g_s_fc_edit, aes(x = paste(Method, Lib_Type, sep = "\n"), y = fc)) +
+ggplot(Mock_g_s_fc_edit, aes(x = Methods_cat, y = fc)) +
     geom_boxplot(outlier.shape = NA) +
     geom_text(aes(label = genus_label, color = paste0(genus_label, ": ", Genus)), size = 8/.pt) +
     geom_text(data = Mock_g_s_fc_edit_duncan, aes(y = 0.8, label = groups), size = 7/.pt) +
@@ -267,6 +214,18 @@ ggplot(Mock_g_s_fc_edit, aes(x = paste(Method, Lib_Type, sep = "\n"), y = fc)) +
     theme_classic(base_size = 10) + theme(aspect.ratio = 3) +
     labs(x = "Method, Sequencing length", y = "Fold Change (Upper or Under)\n between measured abundance vs nominal abundance", color = "Genus", title = "With potential corrections")
 set_panel_size(file = "Figures/Boxplot_fc_g_revised.pdf", width = unit(3.5, "in"), height = unit(6, "in"), panel.size = T, useDingbats = F)
+
+Mock_g_s_fc_edit2 <- Mock_g_s_fc_edit %>% group_by(Sample, Genus2) %>% mutate(Genus3 = gsub("g__", "", Genus2))
+Mock_g_s_fc_edit2$Genus3 <- factor(Mock_g_s_fc_edit2$Genus3, levels = Mock_work_g3 %>% ungroup() %>% arrange(Phylum, Class, Order, Family, Genus) %>% distinct(Phylum, Class, Order, Family, Genus, Genus3) %>% pull(Genus3))
+
+ggplot(Mock_g_s_fc_edit2, aes(x= Genus3, y = fc, fill = Methods_cat)) +
+    geom_beeswarm(size = 1.5, shape = 21, alpha = 0.7) +
+    facet_wrap(.~Sample, scales = "free", ncol = 1) +
+    coord_flip() +
+    labs(x = "", y = "Fold Change (Upper or Under)\n between measured abundance vs nominal abundance", fill = "Methods") +
+    theme_classic(base_size = 8) + theme(plot.title.position = "plot", panel.grid.major = element_line(color = "gray", size = 0.2))
+set_panel_size(file = paste0("Figures/Lollipop_fc_g_revised.pdf"), width = unit(3, "in"), height = unit(c(3, 1.5), "in"))
+
 ```
 
 
@@ -405,4 +364,89 @@ set_panel_size(file = "Figures/Bray_distance_Genus.pdf", width = unit(3, "in"), 
 
 ```
 
+
+
+### Rarefaction curve
+
+```{r}
+sample_dict = "Bei-1	MF1
+Bei-2	MF2
+Bei-3	MF3
+Bei-4	MF4
+Bei-11	MF5
+Bei-12	MF6
+Bei-13	MF7
+Bei-14	MF8
+JW-S09	RF1
+JW-S12	RF2
+JW-S14	RF3
+JW-S18	RF4
+JW-S22	RF5
+" %>% read.table(text = ., header = F, sep = "\t", col.names = c("O_sample", "Sample"))
+
+Enriched150 <- read.table("16Scap/Enriched_PE150_OTU_count.txt", header = F, sep = "\t", stringsAsFactors = F) # a table with OTU id, count, sampleid, and library type
+colnames(Enriched150) <- c("OTU_ID", "Count", "Sample", "Lib_Type")
+
+Enriched_ft <- Enriched150 %>% filter(!grepl("JT-|mock", Sample)) %>% pivot_wider(id_cols =OTU_ID, names_from = Sample, values_from = Count, values_fill = 0) %>% column_to_rownames(var = "OTU_ID")
+Enriched_ft_otu_ct = colSums(Enriched_ft)
+
+Enriched_rare_nspec = rarefy(Enriched_ft, c(seq(2E2, 5E3, 2E2), seq(1E4, 4.5E5, 2E4)), MARGIN = 2)
+
+Enriched_rare_nspec_tb <- Enriched_rare_nspec %>% as.tibble() %>% mutate(Sample = colnames(Enriched_ft)) %>% pivot_longer(cols = starts_with("N"), names_to = "Depth", values_to = "nspec") %>% mutate(Depth = as.numeric(gsub("N", "", Depth)), Method = "Enriched", TotalOTUCt = Enriched_ft_otu_ct[Sample]) %>% filter(Depth<= TotalOTUCt)
+
+
+Meta_16Smap <- read.table("Meta/Meta_PE150_OTU_count.txt", header = F, sep = "\t", stringsAsFactors = F)
+colnames(Meta_16Smap) <- c("OTU_ID", "Count", "Sample", "Lib_Type")
+
+Meta_ft <- Meta_16Smap %>% filter(!grepl("JT-|mock", Sample)) %>% pivot_wider(id_cols =OTU_ID, names_from = Sample, values_from = Count, values_fill = 0) %>% column_to_rownames(var = "OTU_ID")
+Meta_ft_otu_ct = colSums(Meta_ft)
+
+Meta_rare_nspec = rarefy(Meta_ft, seq(2E2, 4E3, 2E2), MARGIN = 2)
+Meta_rare_nspec_tb <- Meta_rare_nspec %>% as.tibble() %>% mutate(Sample = colnames(Meta_ft)) %>% pivot_longer(cols = starts_with("N"), names_to = "Depth", values_to = "nspec") %>% mutate(Depth = as.numeric(gsub("N", "", Depth)), Method = "Unenriched", TotalOTUCt = Meta_ft_otu_ct[Sample]) %>% filter(Depth<= TotalOTUCt)
+
+Rare_work <- rbind(Enriched_rare_nspec_tb, Meta_rare_nspec_tb) %>% merge(sample_dict, ., by = 1) %>% select(-O_sample) %>% mutate(Project = ifelse(grepl("MF", Sample), "Mouse Feces", "Rat Feces"))
+
+p1 = ggplot(Rare_work[Rare_work$Project=="Mouse Feces", ], aes(x = Depth, y = nspec, color = Sample)) +
+    geom_line(aes(linetype = Method)) +
+    theme_classic(base_size = 8) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values =  c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf')) +
+    scale_x_continuous(labels = scales::comma) +
+    guides(color = F) +
+    labs(x = "Sequencing depth", y = "Number of OTUs")
+print(p1)
+
+p2 = ggplot(Rare_work[Rare_work$Project=="Mouse Feces" & Rare_work$Depth<=3000, ], aes(x = Depth, y = nspec, color = Sample)) +
+    geom_line(aes(linetype = Method)) +
+    theme_classic(base_size = 8) + theme(aspect.ratio = 0.8, legend.position = "none") +
+    scale_color_manual(values =  c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00','#ffff33','#a65628','#f781bf')) +
+    scale_x_continuous(labels = scales::comma) +
+    labs(x = "Sequencing depth", y = "Number of OTUs")
+print(p2)
+
+p3 = p1 + inset_element(p2, left = 0.5, bottom = 0, top = 0.6, right = 1)
+print(p3)
+
+p4 = ggplot(Rare_work[Rare_work$Project=="Rat Feces", ], aes(x = Depth, y = nspec, color = Sample)) +
+    geom_line(aes(linetype = Method)) +
+    theme_classic(base_size = 8) + theme(aspect.ratio = 0.8) +
+    scale_color_manual(values =  c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')) +
+    scale_x_continuous(labels = scales::comma) +
+    guides(color = F) +
+    labs(x = "Sequencing depth", y = "Number of OTUs")
+print(p4)
+
+p5 = ggplot(Rare_work[Rare_work$Project=="Rat Feces" & Rare_work$Depth<=3000, ], aes(x = Depth, y = nspec, color = Sample)) +
+    geom_line(aes(linetype = Method)) +
+    theme_classic(base_size = 8) + theme(aspect.ratio = 0.8, legend.position = "none") +
+    scale_color_manual(values =  c('#e41a1c','#377eb8','#4daf4a','#984ea3','#ff7f00')) +
+    scale_x_continuous(labels = scales::comma) +
+    labs(x = "Sequencing depth", y = "Number of OTUs")
+print(p5)
+
+p6 = p4 + inset_element(p5, left = 0.5, bottom = 0, top = 0.6, right = 1)
+print(p6)
+
+p3 + p6 + plot_layout(guides = "collect", ncol = 1)
+ggsave("Figures/Rare_no_filter.pdf", width = 5, useDingbats = F)
+```
 
